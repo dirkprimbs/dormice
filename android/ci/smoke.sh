@@ -26,12 +26,20 @@ sys.exit(f'nothing on screen says "{sys.argv[1]}"')
 PY
 }
 
+# Emulators on build machines are slow, and Android sometimes offers to close
+# one of its own apps on top of ours. Answer "Wait" and carry on.
+calm() {
+  dump calm
+  if grep -q "responding" shots/calm.xml; then tap_text "Wait" || true; sleep 2; fi
+}
+
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb logcat -c
 adb shell am start -W -n "$APP/.MainActivity"
 
 for i in $(seq 1 30); do
   sleep 2
+  calm
   dump home
   if grep -q "Free play" shots/home.xml; then break; fi
   if [ "$i" = 30 ]; then shot 0-no-home; adb logcat -d > shots/logcat.txt; echo "the home screen never appeared"; exit 1; fi
@@ -40,6 +48,7 @@ shot 1-home
 
 tap_text "garden"
 sleep 4
+calm
 shot 2-daily
 adb shell input keyevent KEYCODE_BACK   # closes the rules sheet if one is open
 sleep 2
