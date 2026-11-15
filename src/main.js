@@ -70,11 +70,14 @@ function aboutDialog() {
 
 function settingsDialog() {
   const s = S().settings;
-  const seg = (key, opts) => `<div class="seg">${opts.map(([v, l]) => `<button data-act="set" data-k="${key}" data-v="${v}" class="${String(s[key]) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+  const cur = (key) => (key === 'snapLeaf' ? snapsBack() : s[key]);
+  const seg = (key, opts) => `<div class="seg">${opts.map(([v, l]) => `<button data-act="set" data-k="${key}" data-v="${v}" class="${String(cur(key)) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
   openDialog(`<div class="sheet"><h2>Settings</h2>
     <label>Look</label>${seg('theme', [['auto', 'Auto'], ['light', 'Day'], ['dark', 'Evening']])}
     <label>Sound</label>${seg('sound', [[true, 'On'], [false, 'Off']])}
     <label>Animation</label>${seg('motion', [[true, 'On'], [false, 'Reduced']])}
+    <label>After turning a tile, switch back to Leaf</label>${seg('snapLeaf', [[true, 'On'], [false, 'Off']])}
+    <p class="muted small">With this on, every game starts on Leaf and Turn lasts for one tile, so a stray tap never wakes anyone.</p>
     <label>Shape marks on coloured tiles</label>${seg('markers', [[false, 'Off'], [true, 'On']])}
     <p class="muted small">Shape marks help if the tile colours are hard to tell apart.</p>
     <div class="row"><button class="btn ghost" data-act="reset">Erase progress</button><button class="btn primary" autofocus data-act="ok">Done</button></div></div>`,
@@ -285,6 +288,17 @@ function launch(ctx) {
   if (location.hash === '#/game') route(); else location.hash = '#/game';
 }
 
+// What a plain tap does when a game opens: the player's last choice, and before
+// they have made one, Leaf on touch screens (the careful default) and Turn with a mouse.
+const coarse = () => matchMedia('(pointer: coarse)').matches;
+// "Back to Leaf after a turn": on unless switched off on touch screens, off unless switched on with a mouse.
+const snapsBack = () => S().settings.snapLeaf ?? coarse();
+const startMode = () => (snapsBack() ? 'leaf' : S().settings.mode || (coarse() ? 'leaf' : 'turn'));
+function setMode(mode) {
+  ses.mode = mode;
+  document.querySelectorAll('.mode button').forEach((b) => b.classList.toggle('on', b.dataset.v === mode));
+}
+
 function gameScreen() {
   const ctx = pending;
   if (!ctx) { location.replace('#/'); return; }
@@ -312,15 +326,15 @@ function gameScreen() {
     <footer class="tools">
       <button class="tool" data-act="hint">${I.hint}<span>Hint</span></button>
       <div class="mode" role="group" aria-label="What a tap does">
-        <button class="on" data-act="mode" data-v="turn">${I.turn}<span>Turn</span></button>
-        <button data-act="mode" data-v="leaf">${I.leaf}<span>Leaf</span></button>
+        <button class="${startMode() === 'turn' ? 'on' : ''}" data-act="mode" data-v="turn">${I.turn}<span>Turn</span></button>
+        <button class="${startMode() === 'leaf' ? 'on' : ''}" data-act="mode" data-v="leaf">${I.leaf}<span>Leaf</span></button>
       </div>
       <button class="tool" data-act="fit">${I.fit}<span>Fit</span></button>
       <button class="tool" data-act="again">${I.again}<span>Restart</span></button>
     </footer>
   </main>`;
   if (ses) clearInterval(ses.timer);
-  ses = { ctx, game, mode: 'turn', guided: !!ctx.spec.guided, view: null, timer: 0 };
+  ses = { ctx, game, mode: startMode(), guided: !!ctx.spec.guided, view: null, timer: 0 };
   ses.view = new BoardView($('#wrap'), game, { onAct: act });
   ses.timer = setInterval(tick, 250);
   hud();
@@ -346,11 +360,11 @@ function hud() {
   tick();
 }
 
-function act(c, kind) {
+function act(c, kind, viaKey = false) {
   let g = ses.game;
   if (g.over) return;
   const st = g.state[c];
-  const dig = (kind === 'primary') === (ses.mode === 'turn');
+  const dig = !g.p.mines ? kind === 'primary' : (kind === 'primary') === (ses.mode === 'turn');
   let r;
   if (kind === 'line') r = g.chordLine(c);
   else if (st === OPEN) {
@@ -361,6 +375,8 @@ function act(c, kind) {
     if (st !== COVERED) return;
     if (!g.p.mines) g.p = generate(ses.ctx.spec, ses.ctx.seed, c);
     r = g.reveal(c);
+    // Turn was a one-off: a tap that turned a tile hands the switch back to Leaf.
+    if (!viaKey && kind === 'primary' && ses.mode === 'turn' && snapsBack() && r.changed.length) setMode('leaf');
   } else {
     if (!g.p.mines) return toast('Turn a tile first. Your first tile is always safe.');
     r = g.toggleLeaf(c);
@@ -414,7 +430,9 @@ function showHint(auto) {
   const bar = $('#hintbar');
   bar.hidden = false;
   bar.className = 'hintbar ' + h.kind;
-  $('p', bar).textContent = h.text;
+  // With the switch on Leaf, a plain tap would not do what a "safe to turn" hint asks for.
+  const how = h.kind === 'safe' && ses.mode === 'leaf' ? (coarse() ? ' Press and hold to turn a tile, or switch to Turn.' : ' Right-click to turn a tile, or switch to Turn.') : '';
+  $('p', bar).textContent = h.text + how;
 }
 
 // A record has to show on the clock: at least a whole second quicker.
@@ -499,7 +517,8 @@ function confetti() {
 
 // ---------- events ----------
 document.addEventListener('click', (e) => {
-  if (dlg.contains(e.target)) return;
+  // A dialog button may already be gone (the dialog redraws itself) by the time the click gets here.
+  if (dlg.contains(e.target) || !e.target.isConnected) return;
   const t = e.target.closest('[data-act],[data-level],[data-k],[data-classic]');
   if (!t) return;
   const cfg = S().free;
@@ -524,8 +543,9 @@ document.addEventListener('click', (e) => {
     case 'fit': ses.view.scale = ses.view.fitScale; ses.view.apply(); ses.view.auto = ses.view.fitScale >= 24; return;
     case 'again': return launch(ses.ctx.kind === 'free' ? { ...ses.ctx, seed: 'free:' + Math.random().toString(36).slice(2) } : ses.ctx);
     case 'mode':
-      ses.mode = t.dataset.v;
-      t.parentElement.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === t));
+      S().settings.mode = t.dataset.v;
+      store.save();
+      setMode(t.dataset.v);
   }
 });
 
@@ -552,11 +572,11 @@ document.addEventListener('keydown', (e) => {
 });
 // The keyboard ignores the Turn/Leaf switch: Space always turns, F always leafs.
 function actKey(c, turn) {
-  const mode = ses.mode;
-  ses.mode = 'turn';
   if (!turn && ses.game.state[c] === OPEN) return;
-  act(c, turn ? 'primary' : 'secondary');
-  ses.mode = mode;
+  const mode = ses.mode;
+  ses.mode = 'turn'; // keys have fixed meanings, whatever the switch says
+  act(c, turn ? 'primary' : 'secondary', true);
+  if (ses) ses.mode = mode;
 }
 
 function route() {

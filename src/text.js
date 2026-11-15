@@ -2,7 +2,7 @@
 const touch = () => matchMedia('(pointer: coarse)').matches;
 // Devices with both a touchscreen and a mouse get both sets of instructions.
 const both = () => matchMedia('(any-pointer: coarse)').matches && matchMedia('(any-pointer: fine)').matches;
-const TOUCH_HOW = '<b>Tap</b> a tile to turn it. <b>Press and hold</b> to lay a leaf, or switch to Leaf mode at the bottom. Tap a number to clear around it once its leaves are placed. Pinch to zoom.';
+const TOUCH_HOW = 'The <b>Turn / Leaf</b> switch at the bottom decides what a tap does. On <b>Leaf</b>, a tap lays a leaf and <b>press and hold</b> turns the tile; on <b>Turn</b> it is the other way round. After you turn a tile the switch goes back to Leaf; you can change that in Settings. Tap a number to clear around it once its leaves are placed. Pinch to zoom, drag to move a large garden.';
 const MOUSE_HOW = '<b>Left-click</b> turns a tile. <b>Right-click</b> lays a leaf. Click a number to clear around it once its leaves are placed. Scroll to zoom.';
 
 export const RULES = {

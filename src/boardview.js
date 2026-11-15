@@ -190,8 +190,13 @@ export class BoardView {
     if (!W || !H) return;
     const perUnit = Math.min(W / this.vb.w, H / this.vb.h) * U; // px per tile when the whole board fits
     this.fitScale = Math.min(perUnit, 76);
+    // Boards too large for the screen open at a comfortable tile size and can be dragged.
+    // If that leaves only a sliver off-screen in one direction, shrink a little so that
+    // direction fits: dragging a board by half a tile is just wobble.
     const comfy = matchMedia('(pointer: coarse)').matches ? 40 : 24;
-    const auto = Math.max(this.fitScale, comfy);
+    let auto = Math.max(this.fitScale, comfy);
+    for (const axis of [(W / this.vb.w) * U, (H / this.vb.h) * U])
+      if (axis < auto && axis >= comfy * 0.8) auto = axis;
     if (reset || !this.scale) {
       this.auto = true; // follow the available space until the player zooms
       this.scale = auto;
