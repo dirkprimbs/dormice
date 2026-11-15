@@ -1,7 +1,7 @@
 {
   "name": "dormice",
   "productName": "Dormice",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A cozy logic puzzle about not waking anyone.",
   "author": "Dirk Primbs",
   "homepage": "https://github.com/dirkprimbs/dormice",
@@ -46,7 +46,9 @@
         }
       ],
       "category": "public.app-category.puzzle-games",
-      "identity": "-"
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
     "win": {
       "target": [

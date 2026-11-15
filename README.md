@@ -28,7 +28,9 @@ a lot more to find from there.
 
 **As an app on Linux, Mac or Windows:** download the installer for your
 computer from the [Releases](../../releases) page. The apps are not signed
-yet, so Windows and macOS ask you to confirm before the first start.
+with a paid developer certificate, so Windows and macOS ask you to confirm
+before the first start. On a Mac: *System Settings › Privacy & Security*, then
+*Open Anyway*.
 
 **In a browser:** Dormice is a plain web page with nothing to install. To run
 it from this folder:
