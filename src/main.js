@@ -49,6 +49,9 @@ function openDialog(html, onAct) {
   };
   delete dlg.dataset.sticky;
   if (!dlg.open) dlg.showModal();
+  // Focusing the button at the end scrolls a long sheet down; start at the top instead.
+  const sheet = dlg.querySelector('.sheet');
+  if (sheet) sheet.scrollTop = 0;
 }
 
 function showRules(ids, then) {

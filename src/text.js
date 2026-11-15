@@ -1,5 +1,9 @@
 // The "how it works" cards, shown the first time each idea turns up.
 const touch = () => matchMedia('(pointer: coarse)').matches;
+// Devices with both a touchscreen and a mouse get both sets of instructions.
+const both = () => matchMedia('(any-pointer: coarse)').matches && matchMedia('(any-pointer: fine)').matches;
+const TOUCH_HOW = '<b>Tap</b> a tile to turn it. <b>Press and hold</b> to lay a leaf, or switch to Leaf mode at the bottom. Tap a number to clear around it once its leaves are placed. Pinch to zoom.';
+const MOUSE_HOW = '<b>Left-click</b> turns a tile. <b>Right-click</b> lays a leaf. Click a number to clear around it once its leaves are placed. Scroll to zoom.';
 
 export const RULES = {
   basics: {
@@ -8,9 +12,7 @@ export const RULES = {
       <p>Dormice are asleep under some of these tiles. Turn over every tile that has <b>nobody</b> under it and the garden is yours.</p>
       <p>A <b>number</b> tells you how many sleepers hide in the tiles touching it. No number means none, and the game opens those neighbours for you.</p>
       <p>When you are sure a tile hides a sleeper, lay a <b>leaf</b> on it so you do not turn it by accident.</p>
-      <p class="how">${touch()
-        ? '<b>Tap</b> a tile to turn it. <b>Press and hold</b> to lay a leaf, or switch to Leaf mode at the bottom. Tap a number to clear around it once its leaves are placed.'
-        : '<b>Left-click</b> turns a tile. <b>Right-click</b> lays a leaf. Click a number to clear around it once its leaves are placed. Scroll to zoom.'}</p>
+      ${both() ? `<p class="how">With a mouse: ${MOUSE_HOW}</p><p class="how">By touch: ${TOUCH_HOW}</p>` : `<p class="how">${touch() ? TOUCH_HOW : MOUSE_HOW}</p>`}
       <p>Wake a dormouse and you lose a heart. Stuck? The <b>Hint</b> button shows the next step and explains why it works.</p>`,
   },
   hex: {
