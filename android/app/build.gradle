@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'io.github.dirkprimbs.dormice'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'io.github.dirkprimbs.dormice'
+        minSdk 24
+        targetSdk 36
+        // Keep these two as plain values: F-Droid reads them from this file.
+        // tests/versions.test.js checks they match desktop/package.json.
+        versionCode 10005
+        versionName '1.0.5'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // No library dependencies, so there is nothing to describe in a signed dependency block.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
+    lint {
+        abortOnError true
+    }
+}
+
+// The game itself is the web app at the top of this repository. It is copied
+// into the app's assets on every build, so there is only one copy to maintain.
+def webAssets = tasks.register('webAssets', Sync) {
+    from(rootProject.file('..')) {
+        include 'index.html', 'styles.css', 'manifest.webmanifest', 'src/**', 'icons/**'
+    }
+    into layout.buildDirectory.dir('webAssets/www')
+}
+android.sourceSets.main.assets.srcDir(layout.buildDirectory.dir('webAssets'))
+tasks.named('preBuild') { dependsOn webAssets }
