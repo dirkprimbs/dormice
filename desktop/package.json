@@ -1,0 +1,64 @@
+{
+  "name": "dormice",
+  "productName": "Dormice",
+  "version": "1.0.0",
+  "description": "A cozy logic puzzle about not waking anyone.",
+  "author": "Dirk Primbs",
+  "homepage": "https://github.com/dirkprimbs/dormice",
+  "desktopName": "dormice.desktop",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "copy": "node copy.js",
+    "start": "npm run copy && electron .",
+    "dist": "npm run copy && electron-builder --publish never"
+  },
+  "build": {
+    "appId": "io.github.dirkprimbs.dormice",
+    "productName": "Dormice",
+    "files": [
+      "main.js",
+      "app/**/*"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "icon": "build/icon.png",
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Game",
+      "maintainer": "Dirk Primbs",
+      "syncDesktopName": true
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.puzzle-games"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    },
+    "artifactName": "Dormice-${version}-${os}-${arch}.${ext}"
+  },
+  "devDependencies": {
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0"
+  }
+}

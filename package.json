@@ -1,0 +1,11 @@
+{
+  "name": "dormice",
+  "version": "1.0.0",
+  "description": "A cozy logic puzzle about not waking anyone.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "python3 tools/serve.py",
+    "test": "node --test tests/"
+  }
+}
