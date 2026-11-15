@@ -321,8 +321,10 @@ function gameScreen() {
       <div class="stat time" id="time">0:00</div>
     </header>
     ${legend}
-    <div class="boardwrap" id="wrap" tabindex="0" aria-label="Puzzle board"></div>
-    <div class="hintbar" id="hintbar" hidden><p></p><button class="iconbtn small" data-act="hint-close" aria-label="Close hint">×</button></div>
+    <div class="stage">
+      <div class="boardwrap" id="wrap" tabindex="0" aria-label="Puzzle board"></div>
+      <div class="hintbar" id="hintbar" hidden><p></p><button class="iconbtn small" data-act="hint-close" aria-label="Close hint">×</button></div>
+    </div>
     <footer class="tools">
       <button class="tool" data-act="hint">${I.hint}<span>Hint</span></button>
       <div class="mode" role="group" aria-label="What a tap does">
@@ -378,7 +380,7 @@ function act(c, kind, viaKey = false) {
     // Turn was a one-off: a tap that turned a tile hands the switch back to Leaf.
     if (!viaKey && kind === 'primary' && ses.mode === 'turn' && snapsBack() && r.changed.length) setMode('leaf');
   } else {
-    if (!g.p.mines) return toast('Turn a tile first. Your first tile is always safe.');
+    if (!g.p.mines) return toast('Turn a tile first. Your first tile is always safe.', c);
     r = g.toggleLeaf(c);
   }
   if (!r.changed.length) return;
@@ -389,7 +391,7 @@ function act(c, kind, viaKey = false) {
     play('wake');
     const w = $('#wrap');
     w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake');
-    if (!r.lost) toast(g.lives === 1 ? 'A dormouse woke up. One heart left.' : `A dormouse woke up. ${g.lives} hearts left.`);
+    if (!r.lost) toast(g.lives === 1 ? 'A dormouse woke up. One heart left.' : `A dormouse woke up. ${g.lives} hearts left.`, r.hit[0]);
   } else if (opened) play('turn', opened);
   else play(g.state[c] === LEAF ? 'leaf' : 'lift');
   hud();
@@ -398,11 +400,21 @@ function act(c, kind, viaKey = false) {
   if (ses.guided) setTimeout(() => ses && !ses.game.over && showHint(true), 350);
 }
 
-function toast(text) {
+// The bar floats over the board, so the board never moves when it comes and goes.
+// It sits at the bottom unless that would cover the tiles it is about and the top would not.
+function placeBar(bar, nodes) {
+  const covers = () => {
+    const b = bar.getBoundingClientRect();
+    return nodes.some((n) => { const r = n.getBoundingClientRect(); return r.bottom > b.top && r.top < b.bottom && r.right > b.left && r.left < b.right; });
+  };
+  if (covers()) { bar.classList.add('top'); if (covers()) bar.classList.remove('top'); }
+}
+function toast(text, c) {
   const bar = $('#hintbar');
   bar.hidden = false;
   bar.className = 'hintbar toast';
   $('p', bar).textContent = text;
+  if (c != null) placeBar(bar, [ses.view.nodes[c].g]);
   clearTimeout(ses.toastTimer);
   ses.toastTimer = setTimeout(hideHint, 2600);
 }
@@ -433,6 +445,7 @@ function showHint(auto) {
   // With the switch on Leaf, a plain tap would not do what a "safe to turn" hint asks for.
   const how = h.kind === 'safe' && ses.mode === 'leaf' ? (coarse() ? ' Press and hold to turn a tile, or switch to Turn.' : ' Right-click to turn a tile, or switch to Turn.') : '';
   $('p', bar).textContent = h.text + how;
+  placeBar(bar, ses.view.hinted.map(([node]) => node));
 }
 
 // A record has to show on the clock: at least a whole second quicker.

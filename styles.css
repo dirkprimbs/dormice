@@ -126,7 +126,8 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 .lg.tw i::after { content: "••"; position: absolute; inset: 0; font: 800 .6rem/1.15rem var(--font); text-align: center; color: #40382f; font-style: normal; }
 .k0 { --c: var(--c0); } .k1 { --c: var(--c1); } .k2 { --c: var(--c2); } .k3 { --c: var(--c3); } .k4 { --c: var(--c4); }
 
-.boardwrap { flex: 1; min-height: 0; position: relative; overflow: hidden; touch-action: none; outline: none; }
+.stage { flex: 1; min-height: 0; position: relative; display: flex; }
+.boardwrap { flex: 1; min-width: 0; min-height: 0; position: relative; overflow: hidden; touch-action: none; outline: none; }
 .boardwrap.pannable { cursor: grab; }
 .boardwrap.shake { animation: shake .35s; }
 @keyframes shake { 20% { transform: translateX(-5px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-3px); } }
@@ -187,11 +188,12 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 .lbl.hint-src circle { stroke: var(--ink); stroke-width: 7; }
 @keyframes pulse { 50% { stroke-opacity: .35; } }
 
-.hintbar { margin: 0 auto .5rem; max-width: min(40rem, calc(100% - 1.4rem)); background: var(--panel); border-radius: 1rem; padding: .6rem .5rem .6rem 1rem; box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: .4rem; border-left: 5px solid var(--muted); -webkit-user-select: text; user-select: text; }
+.hintbar { position: absolute; z-index: 2; left: .7rem; right: .7rem; bottom: .5rem; margin: 0 auto; max-width: 40rem; background: var(--panel); border-radius: 1rem; padding: .6rem .5rem .6rem 1rem; box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: .4rem; border-left: 5px solid var(--muted); -webkit-user-select: text; user-select: text; }
 .hintbar[hidden] { display: none; }
 .hintbar p { margin: 0; flex: 1; font-size: .95rem; }
 .hintbar.safe { border-color: var(--ok); } .hintbar.mine { border-color: var(--accent); } .hintbar.wrong, .hintbar.toast { border-color: var(--heart); }
-.hintbar.toast button { display: none; }
+.hintbar.top { bottom: auto; top: .5rem; }
+.hintbar.toast { pointer-events: none; } .hintbar.toast button { display: none; }
 .tools { display: flex; justify-content: center; align-items: stretch; gap: .5rem; padding: 0 .7rem max(.7rem, env(safe-area-inset-bottom)); }
 .tool, .mode button { display: flex; align-items: center; gap: .4rem; padding: .55rem .95rem; border-radius: 999px; font-weight: 800; }
 .tool { background: var(--panel); box-shadow: var(--shadow); }
