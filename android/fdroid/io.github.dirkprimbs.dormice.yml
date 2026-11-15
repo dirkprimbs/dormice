@@ -12,7 +12,7 @@ RepoType: git
 Repo: https://github.com/dirkprimbs/dormice.git
 
 Builds:
-  - versionName: 1.0.6
+  - versionName: '1.0.6'
     versionCode: 10006
     commit: 6134eeb3546847790270f417555bcff14390f019
     subdir: android/app
