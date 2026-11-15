@@ -56,4 +56,17 @@ logic tests. The desktop apps are built from the `desktop` folder
 (`npm install && npm run dist`), and pushing a version tag such as `v1.0.0`
 builds all three and attaches them to a release.
 
+The Android app is a small shell in the `android` folder: one screen that
+shows the game from files packed into the app, with no libraries and no
+network access. Build it with the Android SDK installed:
+
+    cd android && ./gradlew assembleDebug
+
+The game files are copied in on every build. `android/app/build.gradle`
+carries the same version as `desktop/package.json`; a test checks they agree.
+
+## Licence
+
+MIT, see [LICENSE](LICENSE). That covers the code and the artwork.
+
 Made by [Dirk Primbs](https://primbs.ca).

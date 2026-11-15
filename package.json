@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A cozy logic puzzle about not waking anyone.",
   "type": "module",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "start": "python3 tools/serve.py",

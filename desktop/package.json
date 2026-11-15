@@ -6,6 +6,7 @@
   "author": "Dirk Primbs",
   "homepage": "https://github.com/dirkprimbs/dormice",
   "desktopName": "dormice.desktop",
+  "license": "MIT",
   "private": true,
   "main": "main.js",
   "scripts": {
