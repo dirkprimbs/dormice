@@ -12,7 +12,15 @@ shot() { adb exec-out screencap -p > "shots/$1.png"; }
 dump() { adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || true; adb exec-out cat /sdcard/ui.xml > "shots/$1.xml" || true; }
 # tap the middle of the first thing on screen whose text contains $1
 tap_text() {
-  dump tap
+  for attempt in 1 2 3 4 5; do
+    dump tap
+    if [ "$1" != "Wait" ] && grep -q "responding" shots/tap.xml; then tap_now "Wait" || true; sleep 3; continue; fi
+    if tap_now "$1"; then return 0; fi
+    sleep 3
+  done
+  echo "nothing on screen says \"$1\""; return 1
+}
+tap_now() {
   python3 - "$1" <<'PY'
 import re, subprocess, sys
 xml = open('shots/tap.xml', encoding='utf-8', errors='replace').read()
@@ -22,7 +30,7 @@ for node in re.findall(r'<node [^>]*>', xml):
         x1, y1, x2, y2 = map(int, re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', node).groups())
         subprocess.run(['adb', 'shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2)], check=True)
         sys.exit(0)
-sys.exit(f'nothing on screen says "{sys.argv[1]}"')
+sys.exit(1)
 PY
 }
 
@@ -33,6 +41,7 @@ calm() {
   if grep -q "responding" shots/calm.xml; then tap_text "Wait" || true; sleep 2; fi
 }
 
+adb shell settings put global hide_error_dialogs 1
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb logcat -c
 adb shell am start -W -n "$APP/.MainActivity"
