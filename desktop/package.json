@@ -45,7 +45,8 @@
           ]
         }
       ],
-      "category": "public.app-category.puzzle-games"
+      "category": "public.app-category.puzzle-games",
+      "identity": "-"
     },
     "win": {
       "target": [

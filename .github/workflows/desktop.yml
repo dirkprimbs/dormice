@@ -30,6 +30,15 @@ jobs:
       - name: Build installers
         working-directory: desktop
         run: npm run dist
+      # Without any signature, Apple Silicon Macs call a downloaded app "damaged".
+      - name: Check the Mac apps are signed
+        if: runner.os == 'macOS'
+        working-directory: desktop
+        run: |
+          for app in dist/mac*/Dormice.app; do
+            codesign --verify --deep --strict --verbose=2 "$app"
+            codesign -dv "$app" 2>&1 | grep -E "Signature|Identifier"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: dormice-${{ matrix.os }}
