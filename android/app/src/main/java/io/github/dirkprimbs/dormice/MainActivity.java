@@ -101,6 +101,7 @@ public class MainActivity extends Activity {
     // Android versions before 13 call this; newer ones use the callback registered in onCreate.
     @Override
     @SuppressWarnings("deprecation")
+    @SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
         goBack();
     }
