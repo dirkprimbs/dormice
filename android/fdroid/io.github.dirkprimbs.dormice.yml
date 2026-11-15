@@ -1,0 +1,25 @@
+Categories:
+  - Games
+License: MIT
+AuthorName: Dirk Primbs
+AuthorWebSite: https://primbs.ca
+SourceCode: https://github.com/dirkprimbs/dormice
+IssueTracker: https://github.com/dirkprimbs/dormice/issues
+
+AutoName: Dormice
+
+RepoType: git
+Repo: https://github.com/dirkprimbs/dormice.git
+
+Builds:
+  - versionName: 1.0.6
+    versionCode: 10006
+    commit: 6134eeb3546847790270f417555bcff14390f019
+    subdir: android/app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.6
+CurrentVersionCode: 10006
