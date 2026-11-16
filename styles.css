@@ -199,7 +199,9 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 .tool { background: var(--panel); box-shadow: var(--shadow); }
 .mode { display: flex; background: var(--panel); border-radius: 999px; box-shadow: var(--shadow); padding: .2rem; }
 .mode button { padding: .35rem .85rem; } .mode button.on { background: var(--ink); color: var(--bg); }
-@media (max-width: 30rem) { .tool span { display: none; } .tool { padding: .65rem .8rem; } .stat { padding: .3rem .55rem; } .title span { display: none; } }
+/* Narrow phones: the side buttons show only their icons, and the Turn / Leaf switch keeps its words (they say what a tap does) but drops its icons, which leaves room for longer words in other languages. */
+@media (max-width: 30rem) { .tool span { display: none; } .tool { padding: .65rem .8rem; } .tools { gap: .4rem; } .mode button { padding: .35rem .75rem; } .mode button .ic { display: none; } .stat { padding: .3rem .55rem; } .title span { display: none; } }
+@media (max-width: 22rem) { .tools { gap: .3rem; padding-left: .4rem; padding-right: .4rem; } .tool { padding: .6rem .6rem; } .mode button { padding: .35rem .55rem; } }
 /* Short screens (a phone on its side): the controls get their own column on the right, so they never cover the board. */
 @media (max-height: 30rem) {
   .game { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "bar bar" "legend legend" "stage tools"; }
@@ -221,7 +223,8 @@ dialog[open] { animation: rise .22s ease-out; }
 .sheet .how { background: var(--bg); border-radius: .8rem; padding: .7rem .9rem; }
 .sheet label { display: block; font-weight: 800; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: .9rem 0 .35rem; }
 .row { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
-.seg { display: inline-flex; background: var(--bg); border-radius: 999px; padding: .2rem; }
+.seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; background: var(--bg); border-radius: 1.2rem; padding: .2rem; }
+.seg button { white-space: nowrap; }
 .seg button { padding: .35rem .95rem; border-radius: 999px; font-weight: 700; } .seg button.on { background: var(--ink); color: var(--bg); }
 .result { text-align: center; min-width: min(20rem, 80vw); }
 .result .big .ic { width: 4.5rem; height: 4.5rem; }

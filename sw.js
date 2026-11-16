@@ -1,11 +1,11 @@
 // Offline support: try the network first so updates arrive immediately,
 // fall back to the last copy we saw when there is no connection.
-const CACHE = 'dormice-v1';
+const CACHE = 'dormice-v2';
 const FILES = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest', 'icons/icon.svg',
   'src/main.js', 'src/boardview.js', 'src/game.js', 'src/generator.js', 'src/levels.js',
   'src/puzzle.js', 'src/rng.js', 'src/solver.js', 'src/store.js', 'src/topology.js',
-  'src/audio.js', 'src/text.js',
+  'src/audio.js', 'src/text.js', 'src/i18n.js', 'src/lang/en.js', 'src/lang/de.js', 'src/lang/fr.js',
 ];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

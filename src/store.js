@@ -1,7 +1,7 @@
 // Progress and preferences, kept in localStorage.
 const KEY = 'dormice.v1';
 const defaults = () => ({
-  settings: { theme: 'auto', sound: true, markers: false, motion: true },
+  settings: { lang: 'auto', theme: 'auto', sound: true, markers: false, motion: true },
   journey: {}, // level id -> { stars, best }
   best: {},    // free-play config key -> seconds
   scores: {},  // free-play config key -> fastest five wins, [{ t, d, st }]

@@ -150,39 +150,21 @@ export class Game {
   }
 }
 
-const SAFE = {
-  cell: 'This clue already has all its sleepers under leaves, so the other tiles around it are safe to turn.',
-  line: 'This row clue is already complete. Every other tile along the row is safe.',
-  color: 'Every sleeper of this colour has been found. The rest of that colour is safe.',
-  total: 'Every sleeper is accounted for. Whatever is still covered is safe.',
-};
-const MINE = {
-  cell: 'The covered tiles around this clue are exactly enough to make up its number, so each of them hides a sleeper. Lay a leaf on them.',
-  line: 'This row clue needs every tile it has left. Each one hides a sleeper.',
-  color: 'This colour needs every tile it has left. Each one hides a sleeper.',
-  total: 'There are exactly as many sleepers left as covered tiles. Each one hides a sleeper.',
-};
-
 // The simplest next step a player could take, with the reasoning behind it.
 export function getHint(game) {
   const p = game.p;
   const wrong = [];
   for (let c = 0; c < p.n; c++) if (game.state[c] === LEAF && !p.mines[c]) wrong.push(c);
   if (wrong.length)
-    return { kind: 'wrong', cells: [wrong[0]], srcs: [], text: 'Nobody is sleeping under this leaf. Lift it and look at the clues around it again.' };
+    return { kind: 'wrong', cells: [wrong[0]], srcs: [], msg: 'wrong' };
   const d = findDeductions(p, game.known(), 3, false)[0];
   if (!d) {
     let best = -1;
     for (let c = 0; c < p.n && best < 0; c++) if (game.state[c] === COVERED && !p.mines[c]) best = c;
     if (best < 0) return null;
-    return { kind: 'safe', cells: [best], srcs: [], text: 'The clues cannot settle this spot on their own, so here is a gift: this tile is safe.' };
+    return { kind: 'safe', cells: [best], srcs: [], msg: 'gift' };
   }
-  const what = d.mine ? 'hide sleepers' : 'are safe';
-  let text;
-  if (d.tier === 1) text = (d.mine ? MINE : SAFE)[d.srcs[0].t];
-  else if (d.tier === 2)
-    text = `Read these two clues together. However their shared tiles turn out, the marked tiles ${what}.`;
-  else
-    text = `Only one outcome fits all the clues around here: the marked tiles ${what}. Imagine the opposite and one of the clues stops adding up.`;
-  return { kind: d.mine ? 'mine' : 'safe', cells: d.cells, srcs: d.srcs, text, tier: d.tier };
+  // msg names the explanation; the words are in the language files under hint.<msg>.
+  const msg = d.tier === 1 ? `${d.mine ? 'mine' : 'safe'}.${d.srcs[0].t}` : d.tier === 2 ? 'two' : 'deep';
+  return { kind: d.mine ? 'mine' : 'safe', cells: d.cells, srcs: d.srcs, msg, mine: d.mine, tier: d.tier };
 }

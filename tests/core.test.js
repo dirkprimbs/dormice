@@ -77,7 +77,7 @@ test('a game can be won by following hints alone', () => {
     for (let i = 0; i < 5000 && !g.over; i++) {
       const h = getHint(g);
       assert.ok(h && h.kind !== 'wrong', lv.id);
-      assert.notEqual(h.text.includes('gift'), true, `${lv.id} needed a gift`);
+      assert.notEqual(h.msg, 'gift', `${lv.id} needed a gift`);
       for (const c of h.cells) h.kind === 'mine' ? g.toggleLeaf(c) : g.reveal(c);
     }
     assert.equal(g.status, 'won', lv.id);

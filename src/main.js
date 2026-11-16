@@ -7,13 +7,14 @@ import { BoardView, MOUSE_ICON, MOUSE_AWAKE, LEAF_ICON } from './boardview.js';
 import { CHAPTERS, LEVELS, isUnlocked, dailyPuzzle, dateKey, freeSpec, FREE_DEFAULT, rulesOf } from './levels.js';
 import { RULES } from './text.js';
 import { play, setSound } from './audio.js';
+import { t, setLang, lang, LANGS, LANG_NAMES } from './i18n.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const app = $('#app'), dlg = $('#dlg');
 const S = () => store.data;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
-const stars = (n, of = 3) => `<span class="stars" aria-label="${n} of ${of} stars">${'<i class="on">★</i>'.repeat(n)}${'<i>★</i>'.repeat(of - n)}</span>`;
+const stars = (n, of = 3) => `<span class="stars" aria-label="${t('stars', n, of)}">${'<i class="on">★</i>'.repeat(n)}${'<i>★</i>'.repeat(of - n)}</span>`;
 const icon = (inner, vb = '-40 -40 80 80') => `<svg class="ic" viewBox="${vb}" aria-hidden="true">${inner}</svg>`;
 const I = {
   mouse: icon(MOUSE_ICON),
@@ -30,6 +31,9 @@ const I = {
 // ---------- settings ----------
 function applySettings() {
   const s = S().settings;
+  setLang(s.lang);
+  document.title = 'Dormice';
+  $('meta[name=description]').content = t('page.description');
   const dark = s.theme === 'dark' || (s.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   document.documentElement.dataset.markers = s.markers ? 'on' : 'off';
@@ -56,41 +60,45 @@ function openDialog(html, onAct) {
 
 function showRules(ids, then) {
   const body = ids.map((id) => `<section><h2>${RULES[id].title}</h2>${RULES[id].body()}</section>`).join('');
-  openDialog(`<div class="sheet rules">${body}<div class="row"><button class="btn primary" autofocus data-act="ok">Got it</button></div></div>`);
+  openDialog(`<div class="sheet rules">${body}<div class="row"><button class="btn primary" autofocus data-act="ok">${t('gotIt')}</button></div></div>`);
   dlg.addEventListener('close', () => then && then(), { once: true });
 }
 
 function aboutDialog() {
   openDialog(`<div class="sheet about"><div class="big">${I.mouse}</div><h2>Dormice</h2>
-    <p>A quiet little puzzle about not waking anyone, made by Dirk Primbs.</p>
-    <p>If you enjoy it, come and see what else I am building.</p>
+    <p>${t('about.by')}</p>
+    <p>${t('about.more')}</p>
     <p class="links"><a href="https://primbs.ca" target="_blank" rel="noopener">primbs.ca</a><a href="https://github.com/dirkprimbs" target="_blank" rel="noopener">github.com/dirkprimbs</a></p>
-    <div class="row"><button class="btn primary" autofocus data-act="ok">Close</button></div></div>`);
+    <div class="row"><button class="btn primary" autofocus data-act="ok">${t('close')}</button></div></div>`);
 }
 
 function settingsDialog() {
   const s = S().settings;
   const cur = (key) => (key === 'snapLeaf' ? snapsBack() : s[key]);
   const seg = (key, opts) => `<div class="seg">${opts.map(([v, l]) => `<button data-act="set" data-k="${key}" data-v="${v}" class="${String(cur(key)) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-  openDialog(`<div class="sheet"><h2>Settings</h2>
-    <label>Look</label>${seg('theme', [['auto', 'Auto'], ['light', 'Day'], ['dark', 'Evening']])}
-    <label>Sound</label>${seg('sound', [[true, 'On'], [false, 'Off']])}
-    <label>Animation</label>${seg('motion', [[true, 'On'], [false, 'Reduced']])}
-    <label>After turning a tile, switch back to Leaf</label>${seg('snapLeaf', [[true, 'On'], [false, 'Off']])}
-    <p class="muted small">With this on, every game starts on Leaf and Turn lasts for one tile, so a stray tap never wakes anyone.</p>
-    <label>Shape marks on coloured tiles</label>${seg('markers', [[false, 'Off'], [true, 'On']])}
-    <p class="muted small">Shape marks help if the tile colours are hard to tell apart.</p>
-    <div class="row"><button class="btn ghost" data-act="reset">Erase progress</button><button class="btn primary" autofocus data-act="ok">Done</button></div></div>`,
+  openDialog(`<div class="sheet"><h2>${t('settings.title')}</h2>
+    <label>${t('settings.language')}</label>${seg('lang', [['auto', t('settings.langAuto')], ...Object.keys(LANGS).map((k) => [k, LANG_NAMES[k]])])}
+    <label>${t('settings.look')}</label>${seg('theme', [['auto', t('settings.auto')], ['light', t('settings.day')], ['dark', t('settings.evening')]])}
+    <label>${t('settings.sound')}</label>${seg('sound', [[true, t('on')], [false, t('off')]])}
+    <label>${t('settings.animation')}</label>${seg('motion', [[true, t('on')], [false, t('settings.reduced')]])}
+    <label>${t('settings.snapLeaf')}</label>${seg('snapLeaf', [[true, t('on')], [false, t('off')]])}
+    <p class="muted small">${t('settings.snapLeafNote')}</p>
+    <label>${t('settings.markers')}</label>${seg('markers', [[false, t('off')], [true, t('on')]])}
+    <p class="muted small">${t('settings.markersNote')}</p>
+    <div class="row"><button class="btn ghost" data-act="reset">${t('settings.erase')}</button><button class="btn primary" autofocus data-act="ok">${t('done')}</button></div></div>`,
   (act, b) => {
     if (act === 'set') {
       const v = b.dataset.v;
       s[b.dataset.k] = v === 'true' ? true : v === 'false' ? false : v;
+      const relang = b.dataset.k === 'lang';
       store.save(); applySettings(); settingsDialog();
+      // The screen behind the dialog is in the old language: draw it again, without closing the dialog.
+      if (relang) redraw();
       return true;
     }
     if (act === 'reset') {
       if (b.dataset.sure) { store.reset(); applySettings(); route(); return false; }
-      b.dataset.sure = '1'; b.textContent = 'Really erase everything?';
+      b.dataset.sure = '1'; b.textContent = t('settings.eraseSure');
       return true;
     }
   });
@@ -115,7 +123,7 @@ function dailyStreak() {
 
 function home() {
   const j = journeyStats(), today = S().daily[dateKey()], streak = dailyStreak();
-  const dateText = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  const dateText = new Date().toLocaleDateString(lang(), { weekday: 'long', day: 'numeric', month: 'long' });
   app.innerHTML = `<main class="home">
     <header class="hero">
       <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
@@ -130,16 +138,16 @@ function home() {
         <text class="a-z z1" x="128" y="46">z</text><text class="a-z z2" x="146" y="30">z</text><text class="a-z z3" x="166" y="16">z</text>
       </svg>
       <h1>Dormice</h1>
-      <p>A quiet little puzzle about not waking anyone.</p>
+      <p>${t('tagline')}</p>
     </header>
     <nav class="menu">
-      <a class="card primary" href="#/journey"><b>${j.done ? 'Continue the journey' : 'Start the journey'}</b>
-        <span>${j.next ? `Next: ${esc(CHAPTERS[j.next.chapter].title)} ${j.next.index + 1}` : 'Every garden visited'} · ${j.done}/${LEVELS.length} · ${j.st}★</span></a>
-      <a class="card" href="#/daily"><b>Today's garden</b>
-        <span>${dateText} · ${today ? `done in ${fmt(today.time)} ${'★'.repeat(today.stars)}` : 'not visited yet'}${streak > 1 ? ` · ${streak} days running` : ''}</span></a>
-      <a class="card" href="#/free"><b>Free play</b><span>Classic boards, honeycombs, triangles and every twist</span></a>
+      <a class="card primary" href="#/journey"><b>${j.done ? t('home.continue') : t('home.start')}</b>
+        <span>${j.next ? esc(t('home.next', chTitle(CHAPTERS[j.next.chapter]), j.next.index + 1)) : t('home.allVisited')} · ${j.done}/${LEVELS.length} · ${j.st}★</span></a>
+      <a class="card" href="#/daily"><b>${t('home.today')}</b>
+        <span>${dateText} · ${today ? t('home.todayDone', fmt(today.time), '★'.repeat(today.stars)) : t('home.notVisited')}${streak > 1 ? ` · ${t('home.streak', streak)}` : ''}</span></a>
+      <a class="card" href="#/free"><b>${t('home.free')}</b><span>${t('home.freeBlurb')}</span></a>
     </nav>
-    <footer><a class="link" href="#/records">Records</a><button class="link" data-act="how">How to play</button><button class="link" data-act="settings">Settings</button><button class="link" data-act="about">About</button></footer>
+    <footer><a class="link" href="#/records">${t('home.records')}</a><button class="link" data-act="how">${t('home.how')}</button><button class="link" data-act="settings">${t('home.settings')}</button><button class="link" data-act="about">${t('home.about')}</button></footer>
   </main>`;
 }
 
@@ -147,52 +155,55 @@ function home() {
 function journeyScreen() {
   const pr = S().journey;
   app.innerHTML = `<main class="page">
-    <header class="bar"><a class="iconbtn" href="#/" aria-label="Back">${I.back}</a><h1>Journey</h1><span class="spacer"></span></header>
+    <header class="bar"><a class="iconbtn" href="#/" aria-label="${t('back')}">${I.back}</a><h1>${t('journey.title')}</h1><span class="spacer"></span></header>
     <div class="chapters">${CHAPTERS.map((ch, ci) => {
       const open = isUnlocked(ch.levels[0], pr);
       return `<section class="chapter ${open ? '' : 'locked'}">
-        <h2><small>${ci + 1}</small>${esc(ch.title)}</h2><p>${open ? esc(ch.blurb) : 'Finish more of the garden before this one to open it.'}</p>
+        <h2><small>${ci + 1}</small>${esc(chTitle(ch))}</h2><p>${open ? esc(t(`chapter.${ch.id}.blurb`)) : t('journey.locked')}</p>
         <div class="levels">${ch.levels.map((l) => {
           const ok = isUnlocked(l, pr), got = pr[l.id];
-          return `<button class="lv ${got ? 'done' : ''}" ${ok ? '' : 'disabled'} data-level="${l.id}" aria-label="Level ${l.index + 1}">
+          return `<button class="lv ${got ? 'done' : ''}" ${ok ? '' : 'disabled'} data-level="${l.id}" aria-label="${t('journey.level', l.index + 1)}">
             <b>${l.index + 1}</b>${got ? stars(got.stars) : '<span class="stars"><i>★</i><i>★</i><i>★</i></span>'}</button>`;
         }).join('')}</div></section>`;
     }).join('')}</div></main>`;
 }
 
 // ---------- free play ----------
+// The free-play options; their labels are opt.<option> and opt.<option>.<value> in the language files.
 const OPTS = {
-  grid: ['Tiles', [['square', 'Squares'], ['hex', 'Hexagons'], ['tri', 'Triangles']]],
-  size: ['Size', [['s', 'Small'], ['m', 'Medium'], ['l', 'Large']]],
-  density: ['Sleepers', [['calm', 'Few'], ['standard', 'Some'], ['tricky', 'Many']]],
-  shape: ['Garden shape', [['rect', 'Plain'], ['hexagon', 'Comb'], ['round', 'Round'], ['diamond', 'Diamond'], ['ring', 'Ring'], ['ponds', 'Ponds']]],
-  color: ['Colour rule', [['none', 'None'], ['counts', 'Flowerbeds'], ['split', 'Sun and shade'], ['twins', 'Twin nests']]],
+  grid: ['square', 'hex', 'tri'],
+  size: ['s', 'm', 'l'],
+  density: ['calm', 'standard', 'tricky'],
+  shape: ['rect', 'hexagon', 'round', 'diamond', 'ring', 'ponds'],
+  color: ['none', 'counts', 'split', 'twins'],
 };
-const CLASSIC = [['Beginner', 's', 'calm', '9 × 9, 10'], ['Intermediate', 'm', 'standard', '16 × 16, 40'], ['Expert', 'l', 'tricky', '30 × 16, 99']];
+const opt = (k, v) => t(`opt.${k}.${v}`);
+const CLASSIC = [['beginner', 's', 'calm', '9 × 9, 10'], ['intermediate', 'm', 'standard', '16 × 16, 40'], ['expert', 'l', 'tricky', '30 × 16, 99']];
+const chTitle = (ch) => t(`chapter.${ch.id}`);
 const cfgKey = (c) => [c.grid, c.shape, c.size, c.density, c.color, +c.lines, +c.owls, +c.noGuess, c.lives].join('|');
 
 function freeScreen() {
   const cfg = (S().free = { ...FREE_DEFAULT, ...S().free });
   if (cfg.grid !== 'hex' && cfg.shape === 'hexagon') cfg.shape = 'rect';
   if (cfg.grid === 'tri') cfg.owls = false;
-  const seg = (k) => `<fieldset><legend>${OPTS[k][0]}</legend><div class="chips">${OPTS[k][1]
-    .filter(([v]) => v !== 'hexagon' || cfg.grid === 'hex')
-    .map(([v, l]) => `<button data-k="${k}" data-v="${v}" class="chip ${cfg[k] === v ? 'on' : ''}">${l}</button>`).join('')}</div></fieldset>`;
+  const seg = (k) => `<fieldset><legend>${t(`opt.${k}`)}</legend><div class="chips">${OPTS[k]
+    .filter((v) => v !== 'hexagon' || cfg.grid === 'hex')
+    .map((v) => `<button data-k="${k}" data-v="${v}" class="chip ${cfg[k] === v ? 'on' : ''}">${opt(k, v)}</button>`).join('')}</div></fieldset>`;
   const tog = (k, l, off) => `<button data-k="${k}" data-v="toggle" class="chip ${cfg[k] ? 'on' : ''}" ${off ? 'disabled' : ''}>${l}</button>`;
   const isClassic = cfg.grid === 'square' && cfg.shape === 'rect' && cfg.color === 'none' && !cfg.lines && !cfg.owls;
   const best = S().best[cfgKey(cfg)];
   app.innerHTML = `<main class="page">
-    <header class="bar"><a class="iconbtn" href="#/" aria-label="Back">${I.back}</a><h1>Free play</h1><span class="spacer"></span></header>
+    <header class="bar"><a class="iconbtn" href="#/" aria-label="${t('back')}">${I.back}</a><h1>${t('free.title')}</h1><span class="spacer"></span></header>
     <div class="form">
-      <fieldset><legend>The classics</legend><div class="chips">${CLASSIC.map(([l, s, d, sub]) =>
-        `<button data-classic="${s},${d}" class="chip tall ${isClassic && cfg.size === s && cfg.density === d ? 'on' : ''}">${l}<small>${sub}</small></button>`).join('')}</div></fieldset>
+      <fieldset><legend>${t('free.classics')}</legend><div class="chips">${CLASSIC.map(([l, s, d, sub]) =>
+        `<button data-classic="${s},${d}" class="chip tall ${isClassic && cfg.size === s && cfg.density === d ? 'on' : ''}">${t(`classic.${l}`)}<small>${sub}</small></button>`).join('')}</div></fieldset>
       ${seg('grid')}${seg('size')}${seg('density')}${seg('shape')}${seg('color')}
-      <fieldset><legend>Extra clues</legend><div class="chips">${tog('lines', 'Row clues')}${tog('owls', 'Owls', cfg.grid === 'tri')}</div></fieldset>
-      <fieldset><legend>Comfort</legend><div class="chips">
-        ${tog('noGuess', 'Never needs a guess')}
-        <button data-k="lives" data-v="3" class="chip ${cfg.lives === 3 ? 'on' : ''}">Three hearts</button>
-        <button data-k="lives" data-v="1" class="chip ${cfg.lives === 1 ? 'on' : ''}">One heart</button></div></fieldset>
-      <div class="go"><span class="muted">${best ? `Your best here: ${fmt(best)}` : ''}</span><button class="btn primary big" data-act="play">Play</button></div>
+      <fieldset><legend>${t('free.extra')}</legend><div class="chips">${tog('lines', t('free.lines'))}${tog('owls', t('free.owls'), cfg.grid === 'tri')}</div></fieldset>
+      <fieldset><legend>${t('free.comfort')}</legend><div class="chips">
+        ${tog('noGuess', t('free.noGuess'))}
+        <button data-k="lives" data-v="3" class="chip ${cfg.lives === 3 ? 'on' : ''}">${t('free.threeHearts')}</button>
+        <button data-k="lives" data-v="1" class="chip ${cfg.lives === 1 ? 'on' : ''}">${t('free.oneHeart')}</button></div></fieldset>
+      <div class="go"><span class="muted">${best ? t('free.best', fmt(best)) : ''}</span><button class="btn primary big" data-act="play">${t('free.play')}</button></div>
     </div></main>`;
   store.save();
 }
@@ -214,15 +225,15 @@ function cfgOfKey(key) {
   return { grid, shape, size, density, color, lines: lines === '1', owls: owls === '1', noGuess: noGuess === '1', lives: +lives };
 }
 function gardenName(cfg) {
-  const o = (k) => OPTS[k][1].find(([v]) => v === cfg[k])?.[1] ?? cfg[k];
+  const o = (k) => opt(k, cfg[k]);
   const plain = cfg.grid === 'square' && cfg.shape === 'rect' && cfg.color === 'none' && !cfg.lines && !cfg.owls;
   const classic = plain && CLASSIC.find(([, s, d]) => s === cfg.size && d === cfg.density);
-  const name = classic ? `${classic[0]} (${classic[3]})` : `${o('size')} ${o('grid').toLowerCase()}, ${o('density').toLowerCase()} sleepers`;
-  const extra = [cfg.shape !== 'rect' && o('shape'), cfg.color !== 'none' && o('color'), cfg.lines && 'Row clues', cfg.owls && 'Owls',
-    !cfg.noGuess && 'May need a guess', cfg.lives === 1 && 'One heart'].filter(Boolean);
+  const name = classic ? `${t(`classic.${classic[0]}`)} (${classic[3]})` : t('free.garden', cfg.size, cfg.grid, cfg.density);
+  const extra = [cfg.shape !== 'rect' && o('shape'), cfg.color !== 'none' && o('color'), cfg.lines && t('free.lines'), cfg.owls && t('free.owls'),
+    !cfg.noGuess && t('free.mayGuess'), cfg.lives === 1 && t('free.oneHeart')].filter(Boolean);
   return [name, extra.join(' · ')];
 }
-const dayText = (key) => (key ? new Date(key + 'T12:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+const dayText = (key) => (key ? new Date(key + 'T12:00').toLocaleDateString(lang(), { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 
 function recordsScreen() {
   const d = S(), j = journeyStats();
@@ -241,27 +252,25 @@ function recordsScreen() {
   const chapters = CHAPTERS.map((ch) => {
     const done = ch.levels.filter((l) => d.journey[l.id]);
     if (!done.length) return '';
-    const st = done.reduce((a, l) => a + d.journey[l.id].stars, 0), t = done.reduce((a, l) => a + d.journey[l.id].best, 0);
-    return `<li><b>${esc(ch.title)}</b>${`<span class="stars"><i class="on">★</i> ${st}/${ch.levels.length * 3}</span>`}<span class="muted">${done.length}/${ch.levels.length} levels · ${fmt(t)} in all</span></li>`;
+    const st = done.reduce((a, l) => a + d.journey[l.id].stars, 0), time = done.reduce((a, l) => a + d.journey[l.id].best, 0);
+    return `<li><b>${esc(chTitle(ch))}</b>${`<span class="stars"><i class="on">★</i> ${st}/${ch.levels.length * 3}</span>`}<span class="muted">${t('records.chapter', done.length, ch.levels.length, fmt(time))}</span></li>`;
   }).join('');
   app.innerHTML = `<main class="page">
-    <header class="bar"><a class="iconbtn" href="#/" aria-label="Back">${I.back}</a><h1>Records</h1><span class="spacer"></span></header>
+    <header class="bar"><a class="iconbtn" href="#/" aria-label="${t('back')}">${I.back}</a><h1>${t('records.title')}</h1><span class="spacer"></span></header>
     <div class="chapters">
-      <section class="chapter rec"><h2>Free play</h2><p>The five fastest wins for each kind of garden you have played, kept on this device.</p></section>
-      ${boards || '<section class="chapter rec"><p>Nothing here yet. Win a free-play garden and its time shows up here.</p></section>'}
-      <section class="chapter rec"><h2>Today's garden</h2>
-        <p>${days.length ? `${days.length} ${days.length === 1 ? 'day' : 'days'} visited · ${dailyStreak()} running · fastest ${fmt(d.daily[fastest].time)} on ${dayText(fastest)}` : 'Not visited yet.'}</p>
+      <section class="chapter rec"><h2>${t('free.title')}</h2><p>${t('records.freeIntro')}</p></section>
+      ${boards || `<section class="chapter rec"><p>${t('records.freeEmpty')}</p></section>`}
+      <section class="chapter rec"><h2>${t('home.today')}</h2>
+        <p>${days.length ? t('records.daily', days.length, dailyStreak(), fmt(d.daily[fastest].time), dayText(fastest)) : t('records.dailyNone')}</p>
         <ol class="plain">${days.slice(0, 7).map((k) => `<li><b>${fmt(d.daily[k].time)}</b>${stars(d.daily[k].stars)}<span class="muted">${dayText(k)}</span></li>`).join('')}</ol></section>
-      <section class="chapter rec"><h2>Journey</h2><p>${j.done}/${LEVELS.length} levels · ${j.st}/${LEVELS.length * 3} stars</p>
+      <section class="chapter rec"><h2>${t('journey.title')}</h2><p>${t('records.journey', j.done, LEVELS.length, j.st, LEVELS.length * 3)}</p>
         <ol class="plain">${chapters}</ol></section>
     </div></main>`;
 }
 
 function freeTitle(cfg) {
-  const o = (k) => OPTS[k][1].find(([v]) => v === cfg[k])[1];
-  const bits = [o('size'), o('grid').toLowerCase()];
-  const extra = [cfg.color !== 'none' && o('color'), cfg.lines && 'Row clues', cfg.owls && 'Owls'].filter(Boolean);
-  return [bits.join(' '), extra.join(' · ')];
+  const extra = [cfg.color !== 'none' && opt('color', cfg.color), cfg.lines && t('free.lines'), cfg.owls && t('free.owls')].filter(Boolean);
+  return [t('free.name', cfg.size, cfg.grid), extra.join(' · ')];
 }
 
 // ---------- game ----------
@@ -271,17 +280,16 @@ let ses = null;     // the running session
 function startJourney(id) {
   const lv = LEVELS.find((l) => l.id === id);
   const ch = CHAPTERS[lv.chapter];
-  launch({ kind: 'journey', level: lv, spec: lv.spec, seed: lv.seed, title: ch.title, sub: `Level ${lv.index + 1} of ${ch.levels.length}`, lives: 3, back: '#/journey' });
+  launch({ kind: 'journey', level: lv, spec: lv.spec, seed: lv.seed, title: () => chTitle(ch), sub: () => t('journey.levelOf', lv.index + 1, ch.levels.length), lives: 3, back: '#/journey' });
 }
 function dailyCtx() {
   const key = dateKey(), d = dailyPuzzle(key);
-  return { kind: 'daily', key, ...d, title: "Today's garden", sub: new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long' }), lives: 3, back: '#/' };
+  return { kind: 'daily', key, ...d, title: () => t('home.today'), sub: () => new Date().toLocaleDateString(lang(), { day: 'numeric', month: 'long' }), lives: 3, back: '#/' };
 }
 function startFree() {
   const cfg = { ...S().free };
   const portrait = innerHeight > innerWidth * 1.15;
-  const [title, sub] = freeTitle(cfg);
-  launch({ kind: 'free', cfg, spec: freeSpec(cfg, portrait), seed: 'free:' + Math.random().toString(36).slice(2), title, sub, lives: cfg.lives, back: '#/free' });
+  launch({ kind: 'free', cfg, spec: freeSpec(cfg, portrait), seed: 'free:' + Math.random().toString(36).slice(2), title: () => freeTitle(cfg)[0], sub: () => freeTitle(cfg)[1], lives: cfg.lives, back: '#/free' });
 }
 function launch(ctx) {
   pending = ctx;
@@ -310,29 +318,29 @@ function gameScreen() {
   const game = new Game(p, { lives: ctx.lives });
   if (preopen) game.openStart();
   const legend = p.mode === 'counts' ? `<div class="legend" id="legend"></div>`
-    : p.mode === 'split' ? `<div class="legend"><span class="lg k0"><i></i>sun, left number</span><span class="lg k1"><i></i>shade, right number</span></div>`
-    : p.mode === 'twins' ? `<div class="legend"><span class="lg tw"><i></i>twin nest: two sleepers or none</span></div>` : '';
+    : p.mode === 'split' ? `<div class="legend"><span class="lg k0"><i></i>${t('legend.sun')}</span><span class="lg k1"><i></i>${t('legend.shade')}</span></div>`
+    : p.mode === 'twins' ? `<div class="legend"><span class="lg tw"><i></i>${t('legend.twins')}</span></div>` : '';
   app.innerHTML = `<main class="game">
     <header class="bar">
-      <a class="iconbtn" href="${ctx.back}" aria-label="Back">${I.back}</a>
-      <div class="title"><b>${esc(ctx.title)}</b><span>${esc(ctx.sub || '')}</span></div>
+      <a class="iconbtn" href="${ctx.back}" aria-label="${t('back')}">${I.back}</a>
+      <div class="title"><b>${esc(ctx.title())}</b><span>${esc(ctx.sub() || '')}</span></div>
       <div class="stat hearts" id="hearts"></div>
-      <div class="stat" id="left" title="Sleepers not yet under a leaf">${I.mouse}<b></b></div>
+      <div class="stat" id="left" title="${t('game.left')}">${I.mouse}<b></b></div>
       <div class="stat time" id="time">0:00</div>
     </header>
     ${legend}
     <div class="stage">
-      <div class="boardwrap" id="wrap" tabindex="0" aria-label="Puzzle board"></div>
-      <div class="hintbar" id="hintbar" hidden><p></p><button class="iconbtn small" data-act="hint-close" aria-label="Close hint">×</button></div>
+      <div class="boardwrap" id="wrap" tabindex="0" aria-label="${t('game.board')}"></div>
+      <div class="hintbar" id="hintbar" hidden><p></p><button class="iconbtn small" data-act="hint-close" aria-label="${t('game.closeHint')}">×</button></div>
     </div>
     <footer class="tools">
-      <button class="tool" data-act="hint">${I.hint}<span>Hint</span></button>
-      <div class="mode" role="group" aria-label="What a tap does">
-        <button class="${startMode() === 'turn' ? 'on' : ''}" data-act="mode" data-v="turn">${I.turn}<span>Turn</span></button>
-        <button class="${startMode() === 'leaf' ? 'on' : ''}" data-act="mode" data-v="leaf">${I.leaf}<span>Leaf</span></button>
+      <button class="tool" data-act="hint" aria-label="${t('game.hint')}">${I.hint}<span>${t('game.hint')}</span></button>
+      <div class="mode" role="group" aria-label="${t('game.tapDoes')}">
+        <button class="${startMode() === 'turn' ? 'on' : ''}" data-act="mode" data-v="turn" aria-label="${t('game.turn')}">${I.turn}<span>${t('game.turn')}</span></button>
+        <button class="${startMode() === 'leaf' ? 'on' : ''}" data-act="mode" data-v="leaf" aria-label="${t('game.leaf')}">${I.leaf}<span>${t('game.leaf')}</span></button>
       </div>
-      <button class="tool" data-act="fit">${I.fit}<span>Fit</span></button>
-      <button class="tool" data-act="again">${I.again}<span>Restart</span></button>
+      <button class="tool" data-act="fit" aria-label="${t('game.fit')}">${I.fit}<span>${t('game.fit')}</span></button>
+      <button class="tool" data-act="again" aria-label="${t('game.restart')}">${I.again}<span>${t('game.restart')}</span></button>
     </footer>
   </main>`;
   if (ses) clearInterval(ses.timer);
@@ -380,7 +388,7 @@ function act(c, kind, viaKey = false) {
     // Turn was a one-off: a tap that turned a tile hands the switch back to Leaf.
     if (!viaKey && kind === 'primary' && ses.mode === 'turn' && snapsBack() && r.changed.length) setMode('leaf');
   } else {
-    if (!g.p.mines) return toast('Turn a tile first. Your first tile is always safe.', c);
+    if (!g.p.mines) return toast(t('toast.turnFirst'), c);
     r = g.toggleLeaf(c);
   }
   if (!r.changed.length) return;
@@ -391,7 +399,7 @@ function act(c, kind, viaKey = false) {
     play('wake');
     const w = $('#wrap');
     w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake');
-    if (!r.lost) toast(g.lives === 1 ? 'A dormouse woke up. One heart left.' : `A dormouse woke up. ${g.lives} hearts left.`, r.hit[0]);
+    if (!r.lost) toast(t('toast.woke', g.lives), r.hit[0]);
   } else if (opened) play('turn', opened);
   else play(g.state[c] === LEAF ? 'leaf' : 'lift');
   hud();
@@ -429,7 +437,7 @@ function hideHint() {
 function showHint(auto) {
   const g = ses.game;
   if (g.over) return;
-  if (!g.p.mines) return toast('Turn any tile to begin. Your first tile is always safe.');
+  if (!g.p.mines) return toast(t('toast.begin'));
   const h = getHint(g);
   if (!h) return;
   if (!auto) g.hints++;
@@ -443,8 +451,8 @@ function showHint(auto) {
   bar.hidden = false;
   bar.className = 'hintbar ' + h.kind;
   // With the switch on Leaf, a plain tap would not do what a "safe to turn" hint asks for.
-  const how = h.kind === 'safe' && ses.mode === 'leaf' ? (coarse() ? ' Press and hold to turn a tile, or switch to Turn.' : ' Right-click to turn a tile, or switch to Turn.') : '';
-  $('p', bar).textContent = h.text + how;
+  const how = h.kind === 'safe' && ses.mode === 'leaf' ? (coarse() ? t('hint.howTouch') : t('hint.howMouse')) : '';
+  $('p', bar).textContent = t(`hint.${h.msg}`, h.mine) + how;
   placeBar(bar, ses.view.hinted.map(([node]) => node));
 }
 
@@ -456,39 +464,39 @@ function win() {
   clearInterval(ses.timer);
   tick();
   play('win');
-  const t = game.elapsed();
+  const time = game.elapsed();
   const st = game.mistakes ? 1 : game.hints ? 2 : 3;
   let note = '', beaten = null; // beaten: the old best time, when this win was faster
   if (ctx.kind === 'journey') {
     const old = S().journey[ctx.level.id];
-    if (old && faster(t, old.best)) beaten = old.best;
-    S().journey[ctx.level.id] = { stars: Math.max(st, old?.stars || 0), best: Math.min(t, old?.best || Infinity) };
+    if (old && faster(time, old.best)) beaten = old.best;
+    S().journey[ctx.level.id] = { stars: Math.max(st, old?.stars || 0), best: Math.min(time, old?.best || Infinity) };
   } else if (ctx.kind === 'daily') {
     const old = S().daily[ctx.key];
-    if (old && faster(t, old.time)) beaten = old.time;
-    if (!old || st > old.stars || (st === old.stars && t < old.time)) S().daily[ctx.key] = { time: t, stars: st };
+    if (old && faster(time, old.time)) beaten = old.time;
+    if (!old || st > old.stars || (st === old.stars && time < old.time)) S().daily[ctx.key] = { time, stars: st };
   } else {
     const k = cfgKey(ctx.cfg), old = S().best[k];
-    const had = scoresFor(k).length, rank = addScore(k, t, st);
-    if (!old || t < old) S().best[k] = t;
-    if (had && rank === 1 && faster(t, old)) beaten = old;
-    note = rank > 1 ? `Number ${rank} on your board for this kind of garden.` : '';
+    const had = scoresFor(k).length, rank = addScore(k, time, st);
+    if (!old || time < old) S().best[k] = time;
+    if (had && rank === 1 && faster(time, old)) beaten = old;
+    note = rank > 1 ? t('win.rank', rank) : '';
   }
   store.save();
   confetti();
   if (beaten != null) setTimeout(() => { if (ses && ses.game === game) { play('record'); confetti(); } }, 900);
   const next = ctx.kind === 'journey' ? LEVELS[ctx.level.number] : null;
   const nextOpen = next && isUnlocked(next, S().journey);
-  const why = st === 3 ? 'Nobody stirred, and no hints needed.' : st === 2 ? 'Nobody stirred. Try without hints for the third star.' : 'Everyone else slept on. Wake nobody for two stars.';
+  const why = st === 3 ? t('win.three') : st === 2 ? t('win.two') : t('win.one');
   setTimeout(() => {
     if (!ses || ses.game !== game) return;
-    openDialog(`<div class="sheet result"><div class="big">${I.mouse}</div><h2>All quiet</h2>${stars(st)}
-      ${beaten != null ? `<p class="record"><b>New record</b><span>${fmt(t)} beats your old best of ${fmt(beaten)}</span></p>` : ''}
-      <p>${fmt(t)} · ${why}</p>${note ? `<p class="muted">${note}</p>` : ''}
-      ${nextOpen && next.index === 0 ? `<p class="muted">Next up: ${esc(CHAPTERS[next.chapter].title)}</p>` : ''}
+    openDialog(`<div class="sheet result"><div class="big">${I.mouse}</div><h2>${t('win.title')}</h2>${stars(st)}
+      ${beaten != null ? `<p class="record"><b>${t('win.record')}</b><span>${t('win.beats', fmt(time), fmt(beaten))}</span></p>` : ''}
+      <p>${fmt(time)} · ${why}</p>${note ? `<p class="muted">${note}</p>` : ''}
+      ${nextOpen && next.index === 0 ? `<p class="muted">${esc(t('win.nextUp', chTitle(CHAPTERS[next.chapter])))}</p>` : ''}
       <div class="row">
-        <button class="btn ghost" data-act="back">${ctx.kind === 'journey' ? 'Journey' : ctx.kind === 'free' ? 'Change garden' : 'Home'}</button>
-        ${ctx.kind === 'free' ? '<button class="btn primary" autofocus data-act="new">Another</button>' : nextOpen ? '<button class="btn primary" autofocus data-act="next">Next level</button>' : '<button class="btn primary" autofocus data-act="again">Play again</button>'}
+        <button class="btn ghost" data-act="back">${ctx.kind === 'journey' ? t('win.toJourney') : ctx.kind === 'free' ? t('win.change') : t('win.home')}</button>
+        ${ctx.kind === 'free' ? `<button class="btn primary" autofocus data-act="new">${t('win.another')}</button>` : nextOpen ? `<button class="btn primary" autofocus data-act="next">${t('win.next')}</button>` : `<button class="btn primary" autofocus data-act="again">${t('win.again')}</button>`}
       </div></div>`, resultAct);
   }, 900);
 }
@@ -500,10 +508,10 @@ function lose() {
   ses.view.refreshAll();
   setTimeout(() => {
     if (!ses || ses.game !== game) return;
-    openDialog(`<div class="sheet result"><div class="big awake">${I.awake}</div><h2>Everybody is up</h2>
-      <p>No harm done. Dormice fall asleep again very quickly.</p>
-      <div class="row"><button class="btn ghost" data-act="look">Look at the board</button>
-      <button class="btn primary" autofocus data-act="${ctx.kind === 'free' ? 'new' : 'again'}">Try again</button></div></div>`, resultAct);
+    openDialog(`<div class="sheet result"><div class="big awake">${I.awake}</div><h2>${t('lose.title')}</h2>
+      <p>${t('lose.text')}</p>
+      <div class="row"><button class="btn ghost" data-act="look">${t('lose.look')}</button>
+      <button class="btn primary" autofocus data-act="${ctx.kind === 'free' ? 'new' : 'again'}">${t('lose.again')}</button></div></div>`, resultAct);
   }, 1100);
 }
 
@@ -590,6 +598,16 @@ function actKey(c, turn) {
   ses.mode = 'turn'; // keys have fixed meanings, whatever the switch says
   act(c, turn ? 'primary' : 'secondary', true);
   if (ses) ses.mode = mode;
+}
+
+// Draws the current screen again in place, e.g. after the language changed. The game screen is
+// left alone: Settings is only reachable from the home screen, and redrawing would restart the game.
+function redraw() {
+  const h = location.hash || '#/';
+  if (h === '#/journey') journeyScreen();
+  else if (h === '#/free') freeScreen();
+  else if (h === '#/records') recordsScreen();
+  else if (h !== '#/game') home();
 }
 
 function route() {

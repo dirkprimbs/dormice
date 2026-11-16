@@ -8,57 +8,58 @@ const comb = (d, extra) => ({ grid: 'hex', w: d, h: d, shape: 'hexagon', ...extr
 const tri = (w, h, extra) => ({ grid: 'tri', w, h, ...extra });
 
 // level: how deep the reasoning has to go (1 one clue, 2 two clues, 3 anything).
+// Chapter titles and blurbs are in the language files, as chapter.<id> and chapter.<id>.blurb.
 export const CHAPTERS = [
-  { id: 'meadow', title: 'The Meadow', blurb: 'Square tiles and the basics.', levels: [
+  { id: 'meadow', levels: [
     sq(5, 5, { mines: 3, level: 1, guided: true }),
     sq(6, 6, { mines: 5, level: 1, guided: true }),
     sq(8, 8, { mines: 9, level: 1 }),
     sq(9, 9, { mines: 10, level: 2 }),
     sq(10, 10, { mines: 16, level: 2 }),
   ] },
-  { id: 'honeycomb', title: 'Honeycomb', blurb: 'Six neighbours instead of eight.', levels: [
+  { id: 'honeycomb', levels: [
     comb(7, { mines: 6, level: 1 }),
     hex(8, 8, { mines: 11, level: 2 }),
     comb(11, { mines: 17, level: 2 }),
     hex(12, 11, { shape: 'ponds', density: 0.17, level: 3 }),
   ] },
-  { id: 'beds', title: 'Flowerbeds', blurb: 'Each colour tells you how many it hides.', levels: [
+  { id: 'beds', levels: [
     sq(6, 6, { mines: 7, level: 1, rules: { color: 'counts' } }),
     sq(8, 8, { density: 0.19, level: 2, rules: { color: 'counts' } }),
     comb(9, { density: 0.2, level: 2, rules: { color: 'counts' } }),
     sq(11, 11, { shape: 'round', density: 0.2, level: 3, rules: { color: 'counts' } }),
   ] },
-  { id: 'rows', title: 'Row by Row', blurb: 'Clues along the edge count a whole line.', levels: [
+  { id: 'rows', levels: [
     sq(6, 6, { density: 0.22, level: 1, rules: { lines: 1 } }),
     sq(8, 8, { density: 0.22, level: 2, rules: { lines: 0.7 } }),
     comb(9, { density: 0.22, level: 2, rules: { lines: 0.6 } }),
     sq(12, 10, { density: 0.22, level: 3, rules: { lines: 0.5 } }),
   ] },
-  { id: 'twotone', title: 'Sun and Shade', blurb: 'Every clue counts two colours separately.', levels: [
+  { id: 'twotone', levels: [
     sq(6, 6, { density: 0.2, level: 1, rules: { color: 'split' } }),
     sq(9, 9, { density: 0.22, level: 2, rules: { color: 'split' } }),
     hex(10, 9, { density: 0.24, level: 2, rules: { color: 'split' } }),
     sq(12, 12, { shape: 'diamond', density: 0.22, level: 3, rules: { color: 'split' } }),
   ] },
-  { id: 'trellis', title: 'The Trellis', blurb: 'Triangles touch twelve neighbours.', levels: [
+  { id: 'trellis', levels: [
     tri(9, 5, { density: 0.11, level: 1 }),
     tri(13, 7, { density: 0.13, level: 2 }),
     tri(17, 9, { density: 0.14, level: 2 }),
     tri(21, 10, { shape: 'round', density: 0.15, level: 3 }),
   ] },
-  { id: 'owls', title: 'Owl Watch', blurb: 'Ringed clues see two steps away.', levels: [
+  { id: 'owls', levels: [
     sq(7, 7, { density: 0.14, level: 1, rules: { owls: 0.25 } }),
     sq(9, 9, { density: 0.16, level: 2, rules: { owls: 0.3 } }),
     hex(10, 10, { density: 0.17, level: 2, rules: { owls: 0.3 } }),
     sq(12, 12, { shape: 'ponds', density: 0.17, level: 3, rules: { owls: 0.3 } }),
   ] },
-  { id: 'twins', title: 'Twin Nests', blurb: 'Some tiles hold two sleepers or none.', levels: [
+  { id: 'twins', levels: [
     sq(7, 7, { density: 0.14, level: 1, rules: { color: 'twins' } }),
     sq(9, 9, { density: 0.16, level: 2, rules: { color: 'twins' } }),
     comb(11, { density: 0.17, level: 2, rules: { color: 'twins' } }),
     tri(15, 8, { density: 0.13, level: 3, rules: { color: 'twins' } }),
   ] },
-  { id: 'wild', title: 'The Wild Garden', blurb: 'Everything you have learned, mixed.', levels: [
+  { id: 'wild', levels: [
     comb(13, { density: 0.2, level: 3, rules: { color: 'counts', lines: 0.4 } }),
     sq(14, 12, { shape: 'ring', density: 0.2, level: 3, rules: { color: 'split', owls: 0.25 } }),
     tri(21, 11, { density: 0.15, level: 3, rules: { color: 'counts', lines: 0.6 } }),
