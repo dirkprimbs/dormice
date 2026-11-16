@@ -1,16 +1,16 @@
-Des loirs dorment sous certaines cases. Les nombres te disent combien sont tout près, et tu retournes toutes les cases sous lesquelles personne ne dort. Si tu connais le Démineur, tu sais déjà comment commencer, et il reste ensuite bien plus à découvrir.
+Des loirs dorment sous certaines cases. Les nombres te disent combien sont tout près, et tu retournes toutes les cases sous lesquelles personne ne dort. Si tu connais le Démineur, tu sais déjà par où commencer – et il reste ensuite bien plus à découvrir.
 
 <b>Au programme</b>
 
-• Le jeu classique sur grilles carrées : Débutant, Intermédiaire et Expert.
-• Des alvéoles et des triangles, et des jardins en forme d’anneau, de losange ou de mares.
-• Des règles de couleur : des plates-bandes qui comptent leurs propres dormeurs, des indices soleil et ombre qui comptent deux couleurs séparément, et des nids jumeaux qui abritent deux dormeurs ou aucun.
-• Des indices en plus : des nombres au bord qui comptent toute une ligne, et des chouettes qui voient à deux pas.
-• Un voyage de 39 niveaux qui présente une idée à la fois, un nouveau jardin du jour chaque jour, et une partie libre où tu mélanges tout toi-même.
-• Pas de hasard : chaque plateau se termine par la réflexion. Bloqué ? L’indice explique l’étape suivante au lieu de simplement la montrer.
-• Des records pour tes temps les plus rapides, et un thème clair et un thème sombre.
+• Le jeu classique sur grilles carrées : Débutant, Intermédiaire et Expert.
+• Des alvéoles et des triangles, et des jardins en anneau, en losange ou parsemés de mares.
+• Des règles de couleur : des plates-bandes qui comptent leurs propres loirs, des indices soleil et ombre qui comptent deux couleurs à part, et des nids jumeaux qui abritent deux loirs ou aucun.
+• Des indices en plus : des nombres au bord qui comptent toute une ligne, et des chouettes qui voient à deux pas.
+• Un voyage en 39 niveaux qui présente une idée à la fois, un nouveau jardin du jour chaque jour, et une partie libre où tu combines tout à ta guise.
+• Jamais de hasard : chaque plateau se résout par la réflexion. Tu bloques ? L’indice explique l’étape suivante au lieu de simplement la montrer.
+• Des records pour tes temps les plus rapides, un thème clair et un thème sombre.
 • En français, en anglais et en allemand.
 
-<b>Tranquille par nature</b>
+<b>En toute tranquillité</b>
 
-Pas de publicité, pas de pistage, pas de compte. L’application ne demande même pas l’accès au réseau : tout, y compris ta progression, reste sur ton appareil.
+Pas de publicité, pas de pistage, pas de compte. L’application n’a même pas besoin d’accès à Internet : tout, y compris ta progression, reste sur ton appareil.

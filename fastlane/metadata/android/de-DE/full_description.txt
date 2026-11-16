@@ -1,16 +1,16 @@
-Unter einigen Feldern schlafen Siebenschläfer. Zahlen verraten dir, wie viele in der Nähe liegen, und du deckst jedes Feld auf, unter dem niemand schläft. Wenn du Minesweeper kennst, weißt du schon, wie es losgeht, und von dort aus gibt es noch viel mehr zu entdecken.
+Unter einigen Feldern schlafen Siebenschläfer. Die Zahlen verraten, wie viele in der Nähe liegen, und du deckst jedes Feld auf, unter dem niemand schläft. Wer Minesweeper kennt, weiß sofort, wie es losgeht – und danach gibt es noch viel mehr zu entdecken.
 
 <b>Was dich erwartet</b>
 
-• Das klassische Spiel auf quadratischen Feldern: Anfänger, Fortgeschritten und Experte.
-• Waben und Dreiecke, und Gärten in Formen wie Ringen, Rauten und Teichen.
-• Farbregeln: Blumenbeete, die ihre eigenen Schläfer zählen, Sonne-und-Schatten-Hinweise, die zwei Farben getrennt zählen, und Zwillingsnester, die zwei Schläfer bergen oder keinen.
-• Zusätzliche Hinweise: Zahlen am Rand, die eine ganze Reihe zählen, und Eulen, die zwei Schritte weit sehen.
-• Eine Reise mit 39 Leveln, die eine Idee nach der anderen einführt, jeden Tag ein neuer Garten des Tages, und ein freies Spiel, in dem du alles selbst mischst.
-• Kein Raten: Jedes Spielfeld lässt sich mit Nachdenken lösen. Kommst du nicht weiter? Der Tipp erklärt den nächsten Schritt, statt ihn nur zu zeigen.
+• Das klassische Spiel auf quadratischen Feldern: Anfänger, Fortgeschrittene und Profis.
+• Waben und Dreiecke, dazu Gärten als Ring, Raute oder mit Teichen.
+• Farbregeln: Blumenbeete, die ihre eigenen Siebenschläfer zählen, Hinweise für Sonne und Schatten, die zwei Farben getrennt zählen, und Zwillingsnester mit zwei Bewohnern oder keinem.
+• Extra-Hinweise: Zahlen am Rand, die eine ganze Reihe zählen, und Eulen, die zwei Schritte weit sehen.
+• Eine Reise durch 39 Level, die eine Idee nach der anderen einführt, jeden Tag ein neuer Garten des Tages und ein freies Spiel, in dem du alles selbst kombinierst.
+• Kein Raten: Jedes Spielfeld lässt sich mit Nachdenken lösen. Du kommst nicht weiter? Der Tipp erklärt den nächsten Schritt, statt ihn nur zu zeigen.
 • Bestzeiten für deine schnellsten Runden, ein heller und ein dunkler Look.
 • Auf Deutsch, Englisch und Französisch.
 
-<b>Leise mit Absicht</b>
+<b>Ganz in Ruhe</b>
 
-Keine Werbung, kein Tracking, keine Konten. Die App fragt überhaupt nicht nach Netzwerkzugriff: Alles, auch dein Fortschritt, bleibt auf deinem Gerät.
+Keine Werbung, kein Tracking, kein Konto. Die App braucht nicht einmal Internetzugriff: Alles, auch dein Fortschritt, bleibt auf deinem Gerät.
