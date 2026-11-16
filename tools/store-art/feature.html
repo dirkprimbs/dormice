@@ -1,0 +1,71 @@
+<!doctype html>
+<!-- Play Store feature graphic, 1024 × 500. Rendered to PNG by tools/store-art/render.mjs.
+     Only the name as text, so the one image serves every language. -->
+<html><head><meta charset="utf-8">
+<style>
+  :root { --bg: #f3ecdf; --ink: #40382f; --muted: #8b7f70; --tile: #8dba8a; --tile-d: #6c9e70; --ground: #fcf7ec; --ground-d: #e6dac3;
+    --fur: #b98f69; --ear: #e9b7a4; --leafc: #e9853a; --leafrib: #a9541c; --n1: #3b7cb8; --n2: #3a8f5b; --n3: #cc5644;
+    --font: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand", "Varela Round", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  html, body { margin: 0; }
+  body { width: 1024px; height: 500px; overflow: hidden; background: var(--bg); position: relative; font-family: var(--font); }
+  /* the garden: a board fragment running off the right edge, fading out towards the mouse */
+  .board { position: absolute; left: 470px; top: -18px; transform: rotate(-8deg); transform-origin: 0 0;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 150px); mask-image: linear-gradient(90deg, transparent 0, #000 150px); }
+  .hero { position: absolute; left: 56px; top: 54px; width: 470px; text-align: center; }
+  .hero svg { width: 410px; display: block; margin: 0 auto; }
+  h1 { margin: -6px 0 0; font-size: 104px; line-height: 1; font-weight: 800; color: var(--ink); letter-spacing: -1px; }
+  .a-leaf { fill: var(--tile); } .a-rib { fill: none; stroke: var(--tile-d); stroke-width: 3; stroke-linecap: round; }
+  .a-fur { fill: var(--fur); } .a-ear { fill: var(--ear); } .a-nose { fill: #40382f; }
+  .a-tail { fill: none; stroke: var(--fur); stroke-width: 7; stroke-linecap: round; }
+  .a-eye { fill: none; stroke: #40382f; stroke-width: 3; stroke-linecap: round; }
+  .a-z { fill: var(--muted); font: 800 18px var(--font); } .z2 { font-size: 15px; } .z3 { font-size: 12px; }
+  .t { fill: var(--tile); } .ts { fill: var(--tile-d); } .g { fill: var(--ground); stroke: var(--ground-d); stroke-width: 1.5; }
+  .num { font: 800 30px var(--font); text-anchor: middle; dominant-baseline: central; }
+  .blade { fill: var(--leafc); } .rib { stroke: var(--leafrib); stroke-width: 4; stroke-linecap: round; fill: none; }
+</style></head>
+<body>
+<svg class="board" id="board" width="720" height="620"></svg>
+<div class="hero">
+  <svg viewBox="0 0 240 150" aria-hidden="true">
+    <path class="a-leaf" d="M20 118C60 60 170 50 226 96C170 150 70 150 20 118Z"/>
+    <path class="a-rib" d="M30 116C90 100 160 96 220 97"/>
+    <ellipse class="a-fur" cx="122" cy="92" rx="52" ry="34"/>
+    <path class="a-tail" d="M168 104c22 6 30-14 16-22"/>
+    <circle class="a-fur" cx="84" cy="84" r="27"/>
+    <circle class="a-fur" cx="70" cy="60" r="11"/><circle class="a-ear" cx="70" cy="60" r="6"/>
+    <circle class="a-fur" cx="98" cy="58" r="11"/><circle class="a-ear" cx="98" cy="58" r="6"/>
+    <path class="a-eye" d="M68 84q6 6 12 0M86 84q6 6 12 0"/><ellipse class="a-nose" cx="82" cy="95" rx="4" ry="3"/>
+    <text class="a-z" x="128" y="46">z</text><text class="a-z z2" x="146" y="30">z</text><text class="a-z z3" x="166" y="16">z</text>
+  </svg>
+  <h1>Dormice</h1>
+</div>
+<script>
+  // A corner of a garden in play. '.' covered, 'o' opened, 'L' a sleeper under a leaf, 'm' a sleeper not yet found.
+  // The numbers are worked out from the sleepers, so the picture is a position that can really happen.
+  const rows = [
+    '.m.......m..',
+    '..LooL......',
+    '.Looooo..m..',
+    '..oooooL....',
+    '..oooooo....',
+    '.m.LooL.....',
+    '......m.....',
+    '............',
+  ];  const at = (x, y) => (rows[y] || '')[x] || '';
+  const count = (x, y) => [-1, 0, 1].flatMap((dy) => [-1, 0, 1].map((dx) => (dx || dy) && 'Lm'.includes(at(x + dx, y + dy)) && at(x + dx, y + dy) !== '')).filter(Boolean).length;
+  const S = 66, G = 7, R = 12, col = { 1: 'var(--n1)', 2: 'var(--n2)', 3: 'var(--n3)', 4: '#6a5db5' };
+  let out = '';
+  rows.forEach((row, y) => [...row].forEach((c, x) => {
+    const px = x * (S + G), py = y * (S + G);
+    const ch = c === 'o' ? (count(x, y) || ' ') : c;
+    if (ch === '.' || ch === 'L' || ch === 'm') {
+      out += `<rect class="ts" x="${px}" y="${py + 6}" width="${S}" height="${S}" rx="${R}"/><rect class="t" x="${px}" y="${py}" width="${S}" height="${S - 4}" rx="${R}"/>`;
+      if (ch === 'L') out += `<g transform="translate(${px + S / 2} ${py + S / 2 - 2}) scale(.82) rotate(32)"><path class="blade" d="M0-31C24-20 27 9 0 31C-27 9-24-20 0-31Z"/><path class="rib" d="M0-20V31"/></g>`;
+    } else {
+      out += `<rect class="g" x="${px}" y="${py}" width="${S}" height="${S}" rx="${R}"/>`;
+      if (col[ch]) out += `<text class="num" x="${px + S / 2}" y="${py + S / 2 + 2}" fill="${col[ch]}">${ch}</text>`;
+    }
+  }));
+  document.getElementById('board').innerHTML = out;
+</script>
+</body></html>
