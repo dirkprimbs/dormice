@@ -200,7 +200,14 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 .mode { display: flex; background: var(--panel); border-radius: 999px; box-shadow: var(--shadow); padding: .2rem; }
 .mode button { padding: .35rem .85rem; } .mode button.on { background: var(--ink); color: var(--bg); }
 @media (max-width: 30rem) { .tool span { display: none; } .tool { padding: .65rem .8rem; } .stat { padding: .3rem .55rem; } .title span { display: none; } }
-@media (max-height: 30rem) { .game .bar { padding-top: .3rem; padding-bottom: .3rem; } .tools { position: absolute; right: .5rem; bottom: .4rem; padding: 0; } .tool span, .mode span { display: none; } }
+/* Short screens (a phone on its side): the controls get their own column on the right, so they never cover the board. */
+@media (max-height: 30rem) {
+  .game { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "bar bar" "legend legend" "stage tools"; }
+  .game > .bar { grid-area: bar; padding-top: .3rem; padding-bottom: .3rem; } .game > .legend { grid-area: legend; } .game > .stage { grid-area: stage; }
+  .tools { grid-area: tools; flex-direction: column; justify-content: center; align-items: center; padding: .3rem max(.6rem, env(safe-area-inset-right)) max(.4rem, env(safe-area-inset-bottom)) .5rem; }
+  .mode { flex-direction: column; }
+  .tool span, .mode span { display: none; }
+}
 
 /* ---- dialogs ---- */
 dialog { border: 0; padding: 0; background: transparent; color: inherit; max-width: min(32rem, calc(100vw - 1.6rem)); max-height: calc(100dvh - 1.6rem); }

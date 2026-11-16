@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Smoke test on a running emulator: install the app, start it, open today's
-# puzzle, turn a tile, go back. Fails if the home screen never appears; the
+# puzzle, turn a tile, turn the phone on its side and back, go back. Fails if the home screen never appears; the
 # screenshots it leaves in shots/ are for a person to look at.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -66,6 +66,17 @@ read -r W H < <(adb shell wm size | sed -n 's/.*: \([0-9]*\)x\([0-9]*\).*/\1 \2/
 adb shell input tap $((W / 2)) $((H / 2))
 sleep 2
 shot 4-tapped
+# Turn the phone on its side mid-game and back: the game must keep its state,
+# and on its side the controls must sit beside the board, not on top of it.
+adb shell settings put system accelerometer_rotation 0
+adb shell settings put system user_rotation 1
+sleep 3
+calm
+shot 4a-landscape
+adb shell settings put system user_rotation 0
+sleep 3
+calm
+shot 4b-portrait-again
 adb shell input keyevent KEYCODE_BACK
 sleep 2
 adb shell input keyevent KEYCODE_BACK
