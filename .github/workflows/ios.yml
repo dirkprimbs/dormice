@@ -1,0 +1,30 @@
+name: iOS app
+
+# Builds the iOS app and tries it in a simulator. Nothing is signed or
+# uploaded here; that needs an Apple developer account.
+on:
+  push:
+    paths: ['ios/**', 'src/**', 'index.html', 'styles.css', '.github/workflows/ios.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Logic tests
+        run: npm test
+      - name: Build and try it in a simulator
+        run: bash ios/ci/smoke.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulator-screens
+          path: ios/shots/

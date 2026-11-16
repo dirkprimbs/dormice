@@ -1,0 +1,5 @@
+# The Xcode project and Info.plist are generated from project.yml (run: xcodegen)
+*.xcodeproj/
+Dormice/Info.plist
+build/
+shots/

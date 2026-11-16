@@ -65,6 +65,14 @@ network access. Build it with the Android SDK installed:
 The game files are copied in on every build. `android/app/build.gradle`
 carries the same version as `desktop/package.json`; a test checks they agree.
 
+The iOS app in the `ios` folder is the same idea in Swift. Its Xcode project
+is generated from `ios/project.yml`; on a Mac:
+
+    brew install xcodegen
+    cd ios && xcodegen && open Dormice.xcodeproj
+
+`ios/ci/smoke.sh` builds it and plays a few steps in the simulator.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE). That covers the code and the artwork.

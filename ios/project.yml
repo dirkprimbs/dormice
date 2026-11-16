@@ -1,0 +1,90 @@
+# The Xcode project is generated from this file with XcodeGen:
+#   brew install xcodegen && xcodegen
+name: Dormice
+options:
+  bundleIdPrefix: io.github.dirkprimbs
+  deploymentTarget:
+    iOS: "16.4"
+  createIntermediateGroups: true
+settings:
+  base:
+    # Same version as desktop/package.json and the Android app; tests/versions.test.js checks.
+    MARKETING_VERSION: "1.0.6"
+    CURRENT_PROJECT_VERSION: "10006"
+    SWIFT_VERSION: "5.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+targets:
+  Dormice:
+    type: application
+    platform: iOS
+    sources:
+      - Dormice
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.dirkprimbs.dormice
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: Dormice/Info.plist
+      properties:
+        CFBundleDisplayName: Dormice
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSRequiresIPhoneOS: true
+        LSApplicationCategoryType: public.app-category.puzzle-games
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen:
+          UIColorName: Paper
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    postCompileScripts:
+      # The game itself is the web app at the top of this repository. It is copied
+      # into the app on every build, so there is only one copy to maintain.
+      - name: Pack the game
+        basedOnDependencyAnalysis: false
+        script: |
+          set -e
+          DEST="${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/www"
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          cd "${SRCROOT}/.."
+          cp -R index.html styles.css manifest.webmanifest src icons "$DEST/"
+  DormiceUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - DormiceUITests
+    dependencies:
+      - target: Dormice
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.dirkprimbs.dormice.uitests
+        GENERATE_INFOPLIST_FILE: "YES"
+        TARGETED_DEVICE_FAMILY: "1,2"
+schemes:
+  Dormice:
+    build:
+      targets:
+        Dormice: all
+        DormiceUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - DormiceUITests
+    archive:
+      config: Release
