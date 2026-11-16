@@ -31,6 +31,7 @@ final class SmokeTests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(thing("Free play").waitForExistence(timeout: 90), "the home screen never appeared")
+        sleep(2) // the text is known a moment before it is painted
         shot("1-home")
 
         thing("garden").tap()
@@ -43,8 +44,16 @@ final class SmokeTests: XCTestCase {
         sleep(1)
         shot("3-game")
 
-        app.webViews.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        sleep(1)
+        // A tap on a covered tile lays a leaf. Which tiles are covered changes with the
+        // day's puzzle, so try a few spots until the picture changes.
+        let before = XCUIScreen.main.screenshot().pngRepresentation
+        var changed = false
+        for spot in [CGVector(dx: 0.9, dy: 0.36), CGVector(dx: 0.1, dy: 0.36), CGVector(dx: 0.9, dy: 0.7), CGVector(dx: 0.1, dy: 0.7), CGVector(dx: 0.5, dy: 0.5)] {
+            app.webViews.firstMatch.coordinate(withNormalizedOffset: spot).tap()
+            sleep(1)
+            if XCUIScreen.main.screenshot().pngRepresentation != before { changed = true; break }
+        }
+        XCTAssertTrue(changed, "tapping the board did nothing")
         shot("4-tapped")
 
         thing("Back").tap()
