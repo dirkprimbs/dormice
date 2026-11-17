@@ -12,13 +12,28 @@ android {
         targetSdk 36
         // Keep these two as plain values: F-Droid reads them from this file.
         // tests/versions.test.js checks they match desktop/package.json.
-        versionCode 10006
-        versionName '1.0.6'
+        versionCode 10007
+        versionName '1.0.7'
+    }
+
+    // Play uploads are signed with Dirk's upload key, which only CI has (as secrets, see
+    // .github/workflows/play.yml). Without it, release builds stay unsigned, as F-Droid wants.
+    def uploadKeystore = System.getenv('DORMICE_UPLOAD_KEYSTORE')
+    signingConfigs {
+        if (uploadKeystore) {
+            upload {
+                storeFile file(uploadKeystore)
+                storePassword System.getenv('DORMICE_UPLOAD_PASSWORD')
+                keyAlias 'upload'
+                keyPassword System.getenv('DORMICE_UPLOAD_PASSWORD')
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            if (uploadKeystore) signingConfig signingConfigs.upload
         }
     }
 
