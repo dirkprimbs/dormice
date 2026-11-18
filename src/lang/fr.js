@@ -23,6 +23,7 @@ export default {
   'home.next': (chapter, n) => `Prochaine étape : ${chapter} ${n}`,
   'home.allVisited': 'Tous les jardins sont faits',
   'home.today': 'Le jardin du jour',
+  'home.pastDay': 'Jardin du jour',
   'home.todayDone': (time, stars) => `réussi en ${time} ${stars}`,
   'home.notVisited': 'pas encore joué',
   'home.streak': (n) => `${n} jours d’affilée`,
@@ -32,6 +33,7 @@ export default {
   'home.how': 'Règles du jeu',
   'home.settings': 'Réglages',
   'home.about': 'À propos',
+  'home.poke': 'Chatouiller le loir',
 
   'about.by': 'Un petit casse-tête tout doux où il ne faut réveiller personne. Par Dirk Primbs.',
   'about.more': 'Si ça te plaît, viens voir ce que je fabrique d’autre.',
@@ -105,6 +107,7 @@ export default {
   'opt.color.counts': 'Plates-bandes',
   'opt.color.split': 'Soleil et ombre',
   'opt.color.twins': 'Nids jumeaux',
+  'opt.random': 'Au hasard',
   'free.extra': 'Indices en plus',
   'free.lines': 'Indices de ligne',
   'free.owls': 'Chouettes',
@@ -123,6 +126,8 @@ export default {
   'records.freeEmpty': 'Rien pour l’instant. Gagne un jardin en partie libre, et ton temps s’affichera ici.',
   'records.daily': (days, running, fastest, on) => `${days} jour${days === 1 ? '' : 's'} joué${days === 1 ? '' : 's'} · ${running} d’affilée · record ${fastest} le ${on}`,
   'records.dailyNone': 'Pas encore joué.',
+  'records.dailyReplay': 'Choisis un jour pour rejouer son jardin.',
+  'records.replay': (day) => `Rejouer le jardin du ${day}`,
   'records.journey': (done, all, stars, max) => `${done}/${all} niveaux · ${stars}/${max} étoiles`,
   'records.chapter': (done, all, time) => `${done}/${all} niveaux · ${time} en tout`,
 

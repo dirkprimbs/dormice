@@ -5,7 +5,8 @@ import { buildBoard } from '../src/topology.js';
 import { generate } from '../src/generator.js';
 import { simulate } from '../src/solver.js';
 import { Game, getHint, OPEN, LEAF, COVERED } from '../src/game.js';
-import { LEVELS, CHAPTERS, isUnlocked, dailyPuzzle, freeSpec, FREE_DEFAULT, SIZES } from '../src/levels.js';
+import { LEVELS, CHAPTERS, isUnlocked, dailyPuzzle, freeSpec, FREE_DEFAULT, FREE_OPTS, resolveFree, fitSpec, SIZES } from '../src/levels.js';
+import { layoutPuzzle } from '../src/puzzle.js';
 
 const count = (m) => m.reduce((a, b) => a + b, 0);
 
@@ -147,4 +148,52 @@ test('a row clue clears its row once its leaves add up', () => {
     assert.ok(line.cells.every((c) => g.state[c] !== COVERED));
   }
   assert.ok(some >= 0);
+});
+
+// The board's size as the view draws it (see BoardView.build), in board units.
+function drawnSize(spec, seed) {
+  const p = layoutPuzzle(spec, seed), b = p.board;
+  let x0 = b.minX, y0 = b.minY, x1 = b.maxX, y1 = b.maxY;
+  for (const l of p.lines) {
+    x0 = Math.min(x0, l.pos[0] - 0.4); x1 = Math.max(x1, l.pos[0] + 0.4);
+    y0 = Math.min(y0, l.pos[1] - 0.4); y1 = Math.max(y1, l.pos[1] + 0.4);
+  }
+  return [x1 - x0 + 0.6, y1 - y0 + 0.6];
+}
+const PHONES = { upright: { cols: 11, rows: 17 }, sideways: { cols: 20, rows: 9 }, small: { cols: 9, rows: 14 } };
+
+test('journey and daily boards fit a phone screen, and still solve at their depth', () => {
+  const days = Array.from({ length: 40 }, (_, i) => { const k = `2027-01-${String((i % 28) + 1).padStart(2, '0')}`; return { id: 'daily ' + k, ...dailyPuzzle(k) }; });
+  for (const [name, room] of Object.entries(PHONES))
+    for (const lv of [...LEVELS, ...days]) {
+      const spec = fitSpec(lv.spec, room), [w, h] = drawnSize(spec, lv.seed);
+      assert.ok(w <= room.cols + 0.01 && h <= room.rows + 0.01, `${name} ${lv.id}: ${w.toFixed(1)} x ${h.toFixed(1)}`);
+      if (spec === lv.spec || name === 'small') continue;
+      const p = generate(spec, lv.seed);
+      assert.ok(simulate(p, p.start, spec.level).solved, `${name} ${lv.id}`);
+      if (lv.spec.mines) assert.ok(spec.mines <= lv.spec.mines, `${name} ${lv.id} mines`);
+    }
+});
+
+test('a board that fits is left alone; a reshaped one keeps about its tile count', () => {
+  const room = { cols: 40, rows: 40 };
+  for (const lv of LEVELS) assert.equal(fitSpec(lv.spec, room), lv.spec);
+  assert.equal(fitSpec(LEVELS[0].spec, null), LEVELS[0].spec);
+  const big = fitSpec({ grid: 'square', w: 12, h: 12, mines: 30 }, PHONES.upright);
+  assert.ok(Math.abs(big.w * big.h - 144) <= 12 && big.w <= 10, `${big.w}x${big.h}`);
+  assert.equal(big.mines, Math.round((30 * big.w * big.h) / 144));
+});
+
+test('free play: Random settles every choice to a real one', () => {
+  const cfg = { ...FREE_DEFAULT, grid: 'random', size: 'random', density: 'random', shape: 'random', color: 'random' };
+  const seen = {};
+  let n = 0;
+  const rnd = () => ((n = (n * 9301 + 49297) % 233280) / 233280);
+  for (let i = 0; i < 300; i++) {
+    const r = resolveFree(cfg, rnd);
+    for (const k of Object.keys(FREE_OPTS)) { assert.ok(FREE_OPTS[k].includes(r[k]), `${k}=${r[k]}`); (seen[k] ??= new Set()).add(r[k]); }
+    if (r.shape === 'hexagon') assert.equal(r.grid, 'hex');
+  }
+  for (const k of Object.keys(FREE_OPTS)) assert.equal(seen[k].size, FREE_OPTS[k].length, k);
+  assert.deepEqual(resolveFree(FREE_DEFAULT), FREE_DEFAULT);
 });

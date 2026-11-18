@@ -25,16 +25,18 @@ const MARKS = [
 ];
 
 export class BoardView {
-  constructor(wrap, game, { onAct }) {
+  constructor(wrap, game, { onAct, onPoke, intro = false }) {
     this.wrap = wrap;
     this.game = game;
     this.onAct = onAct;
+    this.onPoke = onPoke;
     this.scale = 0;
     this.tx = this.ty = 0;
     this.hl = [];
     this.hinted = [];
     this.cursor = -1;
     this.build();
+    if (intro) this.flyIn();
     this.bind();
     this.fit(true);
     new ResizeObserver(() => this.fit(false)).observe(wrap);
@@ -85,6 +87,39 @@ export class BoardView {
     this.wrap.replaceChildren(svg);
     for (let c = 0; c < p.n; c++) this.refresh(c);
     this.refreshLabels();
+  }
+
+  // A new board's tiles fly in from beyond its edges, the middle ones first.
+  flyIn() {
+    const b = this.game.p.board, cx = (b.minX + b.maxX) / 2, cy = (b.minY + b.maxY) / 2;
+    const far = Math.hypot(b.maxX - cx, b.maxY - cy) || 1;
+    const span = Math.min(520, 160 + b.cells.length * 1.4); // big boards take a little longer, not forever
+    b.cells.forEach((cell, i) => {
+      const dx = cell.x - cx, dy = cell.y - cy, d = Math.hypot(dx, dy) / far;
+      const ang = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.9, dist = (1.6 + Math.random() * 1.6) * U;
+      const { g, floor } = this.nodes[i];
+      const delay = Math.round(d * span + Math.random() * 90) + 'ms';
+      g.style.cssText = `--dx:${(Math.cos(ang) * dist).toFixed(0)}px;--dy:${(Math.sin(ang) * dist - U).toFixed(0)}px;--rot:${((Math.random() - 0.5) * 140).toFixed(0)}deg;animation-delay:${delay}`;
+      floor.style.animationDelay = delay;
+      g.classList.add('enter');
+      floor.classList.add('enter');
+    });
+    this.labels.forEach((l) => l.classList.add('enter'));
+    clearTimeout(this.introTimer);
+    this.introTimer = setTimeout(() => {
+      // Tidy up, without touching a tile that has already been played (its class was rewritten).
+      this.nodes.forEach(({ g, floor }) => { g.classList.remove('enter'); floor.classList.remove('enter'); });
+      this.labels.forEach((l) => l.classList.remove('enter'));
+    }, span + 800);
+  }
+
+  // A tapped dormouse wriggles.
+  poke(c) {
+    const ct = this.nodes[c].ct;
+    ct.classList.remove('poked');
+    void ct.getBoundingClientRect();
+    ct.classList.add('poked');
+    if (this.onPoke) this.onPoke(c);
   }
 
   clueMarkup(c) {
@@ -305,8 +340,11 @@ export class BoardView {
     this.onUp = (e) => {
       if (!ptrs.delete(e.pointerId)) return;
       clearTimeout(timer);
-      if (press && press.id === e.pointerId && e.type === 'pointerup' && !press.moved && !press.long && press.cell != null)
+      if (press && press.id === e.pointerId && e.type === 'pointerup' && !press.moved && !press.long && press.cell != null) {
+        const cl = this.nodes[press.cell].g.classList;
+        if (press.button === 0 && (cl.contains('woken') || cl.contains('shown'))) this.poke(press.cell);
         this.onAct(press.cell, press.button === 2 ? 'secondary' : press.button === 1 ? 'chord' : 'primary');
+      }
       press = null;
       if (ptrs.size < 2) pinch = null;
     };

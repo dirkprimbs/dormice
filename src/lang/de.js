@@ -21,6 +21,7 @@ export default {
   'home.next': (chapter, n) => `Weiter mit: ${chapter} ${n}`,
   'home.allVisited': 'Alle Gärten geschafft',
   'home.today': 'Garten des Tages',
+  'home.pastDay': 'Garten des Tages',
   'home.todayDone': (time, stars) => `geschafft in ${time} ${stars}`,
   'home.notVisited': 'noch nicht gespielt',
   'home.streak': (n) => `${n} Tage am Stück`,
@@ -30,6 +31,7 @@ export default {
   'home.how': 'Spielregeln',
   'home.settings': 'Einstellungen',
   'home.about': 'Info',
+  'home.poke': 'Die Haselmaus anstupsen',
 
   'about.by': 'Ein leises kleines Rätsel, bei dem du niemanden wecken darfst. Von Dirk Primbs.',
   'about.more': 'Wenn es dir gefällt: Hier siehst du, woran ich sonst noch baue.',
@@ -103,6 +105,7 @@ export default {
   'opt.color.counts': 'Blumenbeete',
   'opt.color.split': 'Sonne und Schatten',
   'opt.color.twins': 'Zwillingsnester',
+  'opt.random': 'Zufall',
   'free.extra': 'Extra-Hinweise',
   'free.lines': 'Reihenhinweise',
   'free.owls': 'Eulen',
@@ -121,6 +124,8 @@ export default {
   'records.freeEmpty': 'Noch leer. Gewinne einen Garten im freien Spiel, dann steht deine Zeit hier.',
   'records.daily': (days, running, fastest, on) => `${days} ${days === 1 ? 'Tag' : 'Tage'} gespielt · ${running} am Stück · Bestzeit ${fastest} am ${on}`,
   'records.dailyNone': 'Noch nicht gespielt.',
+  'records.dailyReplay': 'Wähle einen Tag, um seinen Garten noch einmal zu spielen.',
+  'records.replay': (day) => `Garten vom ${day} noch einmal spielen`,
   'records.journey': (done, all, stars, max) => `${done}/${all} Level · ${stars}/${max} Sterne`,
   'records.chapter': (done, all, time) => `${done}/${all} Level · zusammen ${time}`,
 

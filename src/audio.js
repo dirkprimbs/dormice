@@ -32,6 +32,7 @@ export function play(kind, n = 1) {
     else if (kind === 'wake') { tone(196, t, 0.35, 0.07); tone(185, t + 0.02, 0.4, 0.05); }
     else if (kind === 'win') [0, 2, 4, 5, 7].forEach((s, i) => tone(note(s), t + i * 0.11, 0.6, 0.05, 'triangle'));
     else if (kind === 'record') [5, 6, 7, 8, 10].forEach((s, i) => tone(note(s), t + i * 0.09, 0.7, 0.05, 'triangle'));
+    else if (kind === 'squeak') { tone(1320, t, 0.07, 0.025, 'triangle'); tone(1760, t + 0.06, 0.09, 0.025, 'triangle'); }
     else if (kind === 'lose') [4, 2, 0].forEach((s, i) => tone(note(s) / 2, t + i * 0.16, 0.5, 0.05));
   } catch { /* audio is a nicety */ }
 }

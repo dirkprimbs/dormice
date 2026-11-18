@@ -1,0 +1,1 @@
+Boards now fit a phone screen. Replay past daily gardens from Records, pick Random in free play, and play a level again right after winning. Plus a few new animations: tiles fly in, and the dormouse wriggles when you tap it.

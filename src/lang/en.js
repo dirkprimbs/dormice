@@ -22,6 +22,7 @@ export default {
   'home.next': (chapter, n) => `Next: ${chapter} ${n}`,
   'home.allVisited': 'Every garden visited',
   'home.today': "Today's garden",
+  'home.pastDay': 'Daily garden',
   'home.todayDone': (time, stars) => `done in ${time} ${stars}`,
   'home.notVisited': 'not visited yet',
   'home.streak': (n) => `${n} days running`,
@@ -31,6 +32,7 @@ export default {
   'home.how': 'How to play',
   'home.settings': 'Settings',
   'home.about': 'About',
+  'home.poke': 'Nudge the dormouse',
 
   // about
   'about.by': 'A quiet little puzzle about not waking anyone, made by Dirk Primbs.',
@@ -108,6 +110,7 @@ export default {
   'opt.color.counts': 'Flowerbeds',
   'opt.color.split': 'Sun and shade',
   'opt.color.twins': 'Twin nests',
+  'opt.random': 'Random',
   'free.extra': 'Extra clues',
   'free.lines': 'Row clues',
   'free.owls': 'Owls',
@@ -129,6 +132,8 @@ export default {
   'records.freeEmpty': 'Nothing here yet. Win a free-play garden and its time shows up here.',
   'records.daily': (days, running, fastest, on) => `${days} ${plural(days, 'day', 'days')} visited · ${running} running · fastest ${fastest} on ${on}`,
   'records.dailyNone': 'Not visited yet.',
+  'records.dailyReplay': 'Pick a day to play its garden again.',
+  'records.replay': (day) => `Play the garden of ${day} again`,
   'records.journey': (done, all, stars, max) => `${done}/${all} levels · ${stars}/${max} stars`,
   'records.chapter': (done, all, time) => `${done}/${all} levels · ${time} in all`,
 

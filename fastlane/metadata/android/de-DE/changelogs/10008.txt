@@ -1,0 +1,1 @@
+Die Spielfelder passen jetzt aufs Handy. Frühere Gärten des Tages lassen sich unter Bestzeiten noch einmal spielen, im freien Spiel gibt es Zufall, und nach einem Sieg kannst du das Level gleich nochmal spielen. Dazu neue Animationen: Die Felder fliegen herein, und die Haselmaus zappelt, wenn du sie antippst.

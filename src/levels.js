@@ -128,6 +128,25 @@ export const FREE_DEFAULT = {
   lines: false, owls: false, noGuess: true, lives: 3,
 };
 
+// The free-play choices; their labels are opt.<option> and opt.<option>.<value> in the language files.
+// Every one of them can also be 'random', which is settled afresh for each new garden.
+export const FREE_OPTS = {
+  grid: ['square', 'hex', 'tri'],
+  size: ['s', 'm', 'l'],
+  density: ['calm', 'standard', 'tricky'],
+  shape: ['rect', 'hexagon', 'round', 'diamond', 'ring', 'ponds'],
+  color: ['none', 'counts', 'split', 'twins'],
+};
+export function resolveFree(cfg, rnd = Math.random) {
+  const out = { ...cfg };
+  for (const [k, vals] of Object.entries(FREE_OPTS)) {
+    if (out[k] !== 'random') continue;
+    const ok = vals.filter((v) => v !== 'hexagon' || out.grid === 'hex'); // grid is settled first
+    out[k] = ok[Math.floor(rnd() * ok.length)];
+  }
+  return out;
+}
+
 export function freeSpec(cfg, portrait = false) {
   const spec = { grid: cfg.grid, shape: cfg.shape, noGuess: cfg.noGuess, level: 3, rules: {} };
   if (cfg.grid !== 'hex' && cfg.shape === 'hexagon') spec.shape = 'rect';
@@ -141,6 +160,41 @@ export function freeSpec(cfg, portrait = false) {
   if (cfg.lines) spec.rules.lines = 0.6;
   if (cfg.owls && cfg.grid !== 'tri') spec.rules.owls = 0.3;
   return spec;
+}
+
+// ---- Fitting a board to the screen ----
+// How much room a board takes, in board units, with the margin the view adds and,
+// for line clues, the labels past the board's ends.
+function extent(grid, w, h, shape, lines) {
+  const S = Math.sqrt(3) / 2, m = 0.6 + (lines ? 1.8 : 0);
+  if (grid === 'hex' && shape === 'hexagon') return [w + m, (w - 1) * S + 2 / Math.sqrt(3) + m];
+  if (grid === 'hex') return [w + (h > 1 ? 0.5 : 0) + m, (h - 1) * S + 2 / Math.sqrt(3) + m];
+  if (grid === 'tri') return [(w + 1) * 0.75 + m, h * 1.5 * S + (lines ? 0.6 : m)];
+  return [w + m, h + m];
+}
+const combTiles = (d) => { const r = (d - 1) >> 1; return 3 * r * (r + 1) + 1; };
+
+// Journey and daily boards are designed for a roomy screen. When one does not fit the room
+// (cols × rows board units, e.g. a phone held upright), it is reshaped to fit: about as many
+// tiles, taller or wider. A honeycomb shrinks if that loses little, and otherwise becomes a
+// plain hexagon board. A fixed sleeper count follows the tile count. Boards that fit come back unchanged.
+export function fitSpec(spec, room) {
+  const lines = !!(spec.rules && spec.rules.lines), comb = spec.shape === 'hexagon';
+  const fits = (w, h, shape) => { const [x, y] = extent(spec.grid, w, h, shape, lines); return x <= room.cols && y <= room.rows; };
+  if (!room || fits(spec.w, spec.h, spec.shape)) return spec;
+  const area = comb ? combTiles(spec.w) : spec.w * spec.h, aspect = comb ? 1 : spec.w / spec.h;
+  const miss = (tiles) => Math.abs(tiles - area) / area;
+  let best = null;
+  const offer = (w, h, shape, score) => { if (!best || score < best.score) best = { w, h, shape, score }; };
+  if (comb) for (let d = spec.w - 2; d >= 5; d -= 2) if (fits(d, d, 'hexagon')) { offer(d, d, 'hexagon', miss(combTiles(d)) - 0.15); break; }
+  const shape = comb ? 'rect' : spec.shape;
+  for (let w = 3; w <= spec.w * 3; w++)
+    for (let h = 3; h <= spec.h * 3 && fits(w, h, shape); h++)
+      offer(w, h, shape, miss(w * h) + 0.15 * Math.abs(Math.log(w / h / aspect)));
+  if (!best) return spec;
+  const out = { ...spec, w: best.w, h: best.h, shape: best.shape };
+  if (spec.mines) out.mines = Math.max(1, Math.round((spec.mines * (best.shape === 'hexagon' ? combTiles(best.w) : best.w * best.h)) / area));
+  return out;
 }
 
 // Which "how it works" cards a puzzle needs, in teaching order.

@@ -4,7 +4,7 @@ import { generate } from './generator.js';
 import { layoutPuzzle } from './puzzle.js';
 import { Game, getHint, COVERED, OPEN, LEAF } from './game.js';
 import { BoardView, MOUSE_ICON, MOUSE_AWAKE, LEAF_ICON } from './boardview.js';
-import { CHAPTERS, LEVELS, isUnlocked, dailyPuzzle, dateKey, freeSpec, FREE_DEFAULT, rulesOf } from './levels.js';
+import { CHAPTERS, LEVELS, isUnlocked, dailyPuzzle, dateKey, freeSpec, FREE_DEFAULT, FREE_OPTS, resolveFree, fitSpec, rulesOf } from './levels.js';
 import { RULES } from './text.js';
 import { play, setSound } from './audio.js';
 import { t, setLang, lang, LANGS, LANG_NAMES } from './i18n.js';
@@ -26,6 +26,7 @@ const I = {
   again: icon('<path d="M22-8A24 24 0 1 0 24 6M24-28v20H4" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>'),
   fit: icon('<path d="M-26-10v-16h16M26-10v-16H10M-26 10v16h16M26 10v16H10" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>'),
   turn: icon('<rect x="-24" y="-24" width="48" height="48" rx="10" fill="none" stroke="currentColor" stroke-width="8"/><circle r="6" fill="currentColor"/>'),
+  dice: icon('<rect x="-26" y="-26" width="52" height="52" rx="12" fill="none" stroke="currentColor" stroke-width="7"/><g fill="currentColor"><circle cx="-11" cy="-11" r="5.5"/><circle r="5.5"/><circle cx="11" cy="11" r="5.5"/></g>'),
 };
 
 // ---------- settings ----------
@@ -48,6 +49,7 @@ function openDialog(html, onAct) {
   dlg.innerHTML = html;
   dlg.onclick = (e) => {
     const b = e.target.closest('[data-act]');
+    if (b && b.dataset.act === 'poke') return poke(b);
     if (b) { const keep = onAct && onAct(b.dataset.act, b) === true; if (!keep) dlg.close(); }
     else if (e.target === dlg && !dlg.dataset.sticky) dlg.close();
   };
@@ -126,17 +128,22 @@ function home() {
   const dateText = new Date().toLocaleDateString(lang(), { weekday: 'long', day: 'numeric', month: 'long' });
   app.innerHTML = `<main class="home">
     <header class="hero">
-      <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+      <button class="art" data-act="poke" aria-label="${t('home.poke')}"><svg viewBox="0 0 240 150" aria-hidden="true">
         <path class="a-leaf" d="M20 118C60 60 170 50 226 96C170 150 70 150 20 118Z"/>
         <path class="a-rib" d="M30 116C90 100 160 96 220 97"/>
-        <ellipse class="a-fur" cx="122" cy="92" rx="52" ry="34"/>
-        <path class="a-tail" d="M168 104c22 6 30-14 16-22"/>
-        <circle class="a-fur" cx="84" cy="84" r="27"/>
-        <circle class="a-fur" cx="70" cy="60" r="11"/><circle class="a-ear" cx="70" cy="60" r="6"/>
-        <circle class="a-fur" cx="98" cy="58" r="11"/><circle class="a-ear" cx="98" cy="58" r="6"/>
-        <path class="a-eye" d="M68 84q6 6 12 0M86 84q6 6 12 0"/><ellipse class="a-nose" cx="82" cy="95" rx="4" ry="3"/>
+        <g class="dm">
+          <ellipse class="a-fur" cx="122" cy="92" rx="52" ry="34"/>
+          <path class="a-tail" d="M168 104c22 6 30-14 16-22"/>
+          <g class="a-head">
+            <circle class="a-fur" cx="84" cy="84" r="27"/>
+            <g class="a-earl"><circle class="a-fur" cx="70" cy="60" r="11"/><circle class="a-ear" cx="70" cy="60" r="6"/></g>
+            <g class="a-earr"><circle class="a-fur" cx="98" cy="58" r="11"/><circle class="a-ear" cx="98" cy="58" r="6"/></g>
+            <path class="a-eye" d="M68 84q6 6 12 0M86 84q6 6 12 0"/><g class="a-open"><circle cx="74" cy="83" r="3.6"/><circle cx="92" cy="83" r="3.6"/></g>
+            <ellipse class="a-nose" cx="82" cy="95" rx="4" ry="3"/>
+          </g>
+        </g>
         <text class="a-z z1" x="128" y="46">z</text><text class="a-z z2" x="146" y="30">z</text><text class="a-z z3" x="166" y="16">z</text>
-      </svg>
+      </svg></button>
       <h1>Dormice</h1>
       <p>${t('tagline')}</p>
     </header>
@@ -169,14 +176,6 @@ function journeyScreen() {
 }
 
 // ---------- free play ----------
-// The free-play options; their labels are opt.<option> and opt.<option>.<value> in the language files.
-const OPTS = {
-  grid: ['square', 'hex', 'tri'],
-  size: ['s', 'm', 'l'],
-  density: ['calm', 'standard', 'tricky'],
-  shape: ['rect', 'hexagon', 'round', 'diamond', 'ring', 'ponds'],
-  color: ['none', 'counts', 'split', 'twins'],
-};
 const opt = (k, v) => t(`opt.${k}.${v}`);
 const CLASSIC = [['beginner', 's', 'calm', '9 × 9, 10'], ['intermediate', 'm', 'standard', '16 × 16, 40'], ['expert', 'l', 'tricky', '30 × 16, 99']];
 const chTitle = (ch) => t(`chapter.${ch.id}`);
@@ -186,9 +185,10 @@ function freeScreen() {
   const cfg = (S().free = { ...FREE_DEFAULT, ...S().free });
   if (cfg.grid !== 'hex' && cfg.shape === 'hexagon') cfg.shape = 'rect';
   if (cfg.grid === 'tri') cfg.owls = false;
-  const seg = (k) => `<fieldset><legend>${t(`opt.${k}`)}</legend><div class="chips">${OPTS[k]
+  const seg = (k) => `<fieldset><legend>${t(`opt.${k}`)}</legend><div class="chips">${FREE_OPTS[k]
     .filter((v) => v !== 'hexagon' || cfg.grid === 'hex')
-    .map((v) => `<button data-k="${k}" data-v="${v}" class="chip ${cfg[k] === v ? 'on' : ''}">${opt(k, v)}</button>`).join('')}</div></fieldset>`;
+    .map((v) => `<button data-k="${k}" data-v="${v}" class="chip ${cfg[k] === v ? 'on' : ''}">${opt(k, v)}</button>`).join('')}
+    <button data-k="${k}" data-v="random" class="chip rand ${cfg[k] === 'random' ? 'on' : ''}">${I.dice}${t('opt.random')}</button></div></fieldset>`;
   const tog = (k, l, off) => `<button data-k="${k}" data-v="toggle" class="chip ${cfg[k] ? 'on' : ''}" ${off ? 'disabled' : ''}>${l}</button>`;
   const isClassic = cfg.grid === 'square' && cfg.shape === 'rect' && cfg.color === 'none' && !cfg.lines && !cfg.owls;
   const best = S().best[cfgKey(cfg)];
@@ -262,7 +262,8 @@ function recordsScreen() {
       ${boards || `<section class="chapter rec"><p>${t('records.freeEmpty')}</p></section>`}
       <section class="chapter rec"><h2>${t('home.today')}</h2>
         <p>${days.length ? t('records.daily', days.length, dailyStreak(), fmt(d.daily[fastest].time), dayText(fastest)) : t('records.dailyNone')}</p>
-        <ol class="plain">${days.slice(0, 7).map((k) => `<li><b>${fmt(d.daily[k].time)}</b>${stars(d.daily[k].stars)}<span class="muted">${dayText(k)}</span></li>`).join('')}</ol></section>
+        ${days.length ? `<p>${t('records.dailyReplay')}</p>` : ''}
+        <ol class="plain days">${days.slice(0, 14).map((k) => `<li><button data-day="${k}" aria-label="${esc(t('records.replay', dayText(k)))}"><b>${fmt(d.daily[k].time)}</b>${stars(d.daily[k].stars)}<span class="muted">${dayText(k)}</span>${I.again}</button></li>`).join('')}</ol></section>
       <section class="chapter rec"><h2>${t('journey.title')}</h2><p>${t('records.journey', j.done, LEVELS.length, j.st, LEVELS.length * 3)}</p>
         <ol class="plain">${chapters}</ol></section>
     </div></main>`;
@@ -282,12 +283,15 @@ function startJourney(id) {
   const ch = CHAPTERS[lv.chapter];
   launch({ kind: 'journey', level: lv, spec: lv.spec, seed: lv.seed, title: () => chTitle(ch), sub: () => t('journey.levelOf', lv.index + 1, ch.levels.length), lives: 3, back: '#/journey' });
 }
-function dailyCtx() {
-  const key = dateKey(), d = dailyPuzzle(key);
-  return { kind: 'daily', key, ...d, title: () => t('home.today'), sub: () => new Date().toLocaleDateString(lang(), { day: 'numeric', month: 'long' }), lives: 3, back: '#/' };
+// Today's garden, or (from Records) the garden of an earlier day.
+function dailyCtx(key = dateKey(), back = '#/') {
+  const d = dailyPuzzle(key), today = key === dateKey();
+  const day = new Date(key + 'T12:00');
+  const sub = () => day.toLocaleDateString(lang(), today ? { day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' });
+  return { kind: 'daily', key, ...d, title: () => t(today ? 'home.today' : 'home.pastDay'), sub, lives: 3, back };
 }
 function startFree() {
-  const cfg = { ...S().free };
+  const cfg = resolveFree(S().free);
   const portrait = innerHeight > innerWidth * 1.15;
   launch({ kind: 'free', cfg, spec: freeSpec(cfg, portrait), seed: 'free:' + Math.random().toString(36).slice(2), title: () => freeTitle(cfg)[0], sub: () => freeTitle(cfg)[1], lives: cfg.lives, back: '#/free' });
 }
@@ -310,16 +314,10 @@ function setMode(mode) {
 function gameScreen() {
   const ctx = pending;
   if (!ctx) { location.replace('#/'); return; }
-  const r = ctx.spec.rules || {};
-  // Puzzles with clues that are visible from the start are opened for you;
-  // plain ones wait for your first click and build themselves around it.
-  const preopen = ctx.kind !== 'free' || r.lines || r.color;
-  const p = preopen ? generate(ctx.spec, ctx.seed) : layoutPuzzle(ctx.spec, ctx.seed);
-  const game = new Game(p, { lives: ctx.lives });
-  if (preopen) game.openStart();
-  const legend = p.mode === 'counts' ? `<div class="legend" id="legend"></div>`
-    : p.mode === 'split' ? `<div class="legend"><span class="lg k0"><i></i>${t('legend.sun')}</span><span class="lg k1"><i></i>${t('legend.shade')}</span></div>`
-    : p.mode === 'twins' ? `<div class="legend"><span class="lg tw"><i></i>${t('legend.twins')}</span></div>` : '';
+  const r = ctx.spec.rules || {}, colors = r.color || 'none';
+  const legend = colors === 'counts' ? `<div class="legend" id="legend"></div>`
+    : colors === 'split' ? `<div class="legend"><span class="lg k0"><i></i>${t('legend.sun')}</span><span class="lg k1"><i></i>${t('legend.shade')}</span></div>`
+    : colors === 'twins' ? `<div class="legend"><span class="lg tw"><i></i>${t('legend.twins')}</span></div>` : '';
   app.innerHTML = `<main class="game">
     <header class="bar">
       <a class="iconbtn" href="${ctx.back}" aria-label="${t('back')}">${I.back}</a>
@@ -343,9 +341,18 @@ function gameScreen() {
       <button class="tool" data-act="again" aria-label="${t('game.restart')}">${I.again}<span>${t('game.restart')}</span></button>
     </footer>
   </main>`;
+  // Journey and daily boards are reshaped when they would not fit the screen (a phone, say);
+  // free play keeps the size the player picked.
+  const spec = ctx.kind === 'free' ? ctx.spec : fitSpec(ctx.spec, room($('#wrap')));
+  // Puzzles with clues that are visible from the start are opened for you;
+  // plain ones wait for your first click and build themselves around it.
+  const preopen = ctx.kind !== 'free' || r.lines || r.color;
+  const p = preopen ? generate(spec, ctx.seed) : layoutPuzzle(spec, ctx.seed);
+  const game = new Game(p, { lives: ctx.lives });
+  if (preopen) game.openStart();
   if (ses) clearInterval(ses.timer);
-  ses = { ctx, game, mode: startMode(), guided: !!ctx.spec.guided, view: null, timer: 0 };
-  ses.view = new BoardView($('#wrap'), game, { onAct: act });
+  ses = { ctx, spec, game, mode: startMode(), guided: !!ctx.spec.guided, view: null, timer: 0, lives: null };
+  ses.view = new BoardView($('#wrap'), game, { onAct: act, intro: motionOn(), onPoke: () => play('squeak') });
   ses.timer = setInterval(tick, 250);
   hud();
   const unseen = rulesOf(ctx.spec).filter((id) => !S().seen[id]);
@@ -356,6 +363,14 @@ function gameScreen() {
   } else if (ses.guided) showHint(true);
 }
 
+// The space for the board, in tiles of the smallest size the view settles for before it
+// makes the player drag (see BoardView.fit).
+function room(wrap) {
+  const tile = coarse() ? 32 : 19.2;
+  return wrap.clientWidth && wrap.clientHeight ? { cols: Math.floor(wrap.clientWidth / tile), rows: Math.floor(wrap.clientHeight / tile) } : null;
+}
+const motionOn = () => S().settings.motion && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 function tick() {
   if (!ses || !$('#time')) return;
   $('#time').textContent = fmt(ses.game.elapsed());
@@ -363,7 +378,14 @@ function tick() {
 
 function hud() {
   const g = ses.game;
-  $('#hearts').innerHTML = g.maxLives > 1 ? Array.from({ length: g.maxLives }, (_, i) => `<span class="${i < g.lives ? '' : 'gone'}">${I.heart}</span>`).join('') : '';
+  // Hearts are drawn again only when one is lost, so a lost heart's burst can play out.
+  if (ses.lives !== g.lives) {
+    const lost = (i) => ses.lives != null && i >= g.lives && i < ses.lives;
+    const bits = Array.from({ length: 8 }, (_, k) => `<i class="bit" style="--a:${k * 45 + 22}deg"></i>`).join('');
+    $('#hearts').innerHTML = g.maxLives > 1 ? Array.from({ length: g.maxLives }, (_, i) =>
+      `<span class="${i < g.lives ? '' : 'gone'}${lost(i) && motionOn() ? ' burst' : ''}">${I.heart}${lost(i) && motionOn() ? bits : ''}</span>`).join('') : '';
+    ses.lives = g.lives;
+  }
   $('#left b').textContent = g.remaining();
   const lg = $('#legend');
   if (lg) lg.innerHTML = g.p.colorTotals.map((_, k) => `<span class="lg k${k} ${g.colorRemaining(k) === 0 ? 'zero' : ''}" data-color="${k}"><i></i><b>${g.colorRemaining(k)}</b></span>`).join('');
@@ -383,7 +405,7 @@ function act(c, kind, viaKey = false) {
   } else if (kind === 'chord') return;
   else if (dig) {
     if (st !== COVERED) return;
-    if (!g.p.mines) g.p = generate(ses.ctx.spec, ses.ctx.seed, c);
+    if (!g.p.mines) g.p = generate(ses.spec, ses.ctx.seed, c);
     r = g.reveal(c);
     // Turn was a one-off: a tap that turned a tile hands the switch back to Leaf.
     if (!viaKey && kind === 'primary' && ses.mode === 'turn' && snapsBack() && r.changed.length) setMode('leaf');
@@ -490,13 +512,13 @@ function win() {
   const why = st === 3 ? t('win.three') : st === 2 ? t('win.two') : t('win.one');
   setTimeout(() => {
     if (!ses || ses.game !== game) return;
-    openDialog(`<div class="sheet result"><div class="big">${I.mouse}</div><h2>${t('win.title')}</h2>${stars(st)}
+    openDialog(`<div class="sheet result"><button class="big" data-act="poke" aria-label="${t('home.poke')}">${I.mouse}</button><h2>${t('win.title')}</h2>${stars(st)}
       ${beaten != null ? `<p class="record"><b>${t('win.record')}</b><span>${t('win.beats', fmt(time), fmt(beaten))}</span></p>` : ''}
       <p>${fmt(time)} · ${why}</p>${note ? `<p class="muted">${note}</p>` : ''}
       ${nextOpen && next.index === 0 ? `<p class="muted">${esc(t('win.nextUp', chTitle(CHAPTERS[next.chapter])))}</p>` : ''}
       <div class="row">
-        <button class="btn ghost" data-act="back">${ctx.kind === 'journey' ? t('win.toJourney') : ctx.kind === 'free' ? t('win.change') : t('win.home')}</button>
-        ${ctx.kind === 'free' ? `<button class="btn primary" autofocus data-act="new">${t('win.another')}</button>` : nextOpen ? `<button class="btn primary" autofocus data-act="next">${t('win.next')}</button>` : `<button class="btn primary" autofocus data-act="again">${t('win.again')}</button>`}
+        <button class="btn ghost" data-act="back">${ctx.kind === 'journey' ? t('win.toJourney') : ctx.kind === 'free' ? t('win.change') : ctx.back === '#/records' ? t('home.records') : t('win.home')}</button>
+        ${ctx.kind === 'free' ? `<button class="btn primary" autofocus data-act="new">${t('win.another')}</button>` : nextOpen ? `<button class="btn" data-act="again">${t('win.again')}</button><button class="btn primary" autofocus data-act="next">${t('win.next')}</button>` : `<button class="btn primary" autofocus data-act="again">${t('win.again')}</button>`}
       </div></div>`, resultAct);
   }, 900);
 }
@@ -508,7 +530,7 @@ function lose() {
   ses.view.refreshAll();
   setTimeout(() => {
     if (!ses || ses.game !== game) return;
-    openDialog(`<div class="sheet result"><div class="big awake">${I.awake}</div><h2>${t('lose.title')}</h2>
+    openDialog(`<div class="sheet result"><button class="big awake" data-act="poke" aria-label="${t('home.poke')}">${I.awake}</button><h2>${t('lose.title')}</h2>
       <p>${t('lose.text')}</p>
       <div class="row"><button class="btn ghost" data-act="look">${t('lose.look')}</button>
       <button class="btn primary" autofocus data-act="${ctx.kind === 'free' ? 'new' : 'again'}">${t('lose.again')}</button></div></div>`, resultAct);
@@ -521,6 +543,17 @@ function resultAct(a) {
   else if (a === 'next') startJourney(LEVELS[ctx.level.number].id);
   else if (a === 'new') startFree();
   else if (a === 'again') launch(ctx);
+}
+
+// A dormouse that is tapped wriggles (and squeaks) instead of doing nothing.
+function poke(el) {
+  play('squeak');
+  if (!motionOn()) return;
+  el.classList.remove('poked');
+  void el.getBoundingClientRect();
+  el.classList.add('poked');
+  clearTimeout(el.pokeTimer);
+  el.pokeTimer = setTimeout(() => el.classList.remove('poked'), 1200);
 }
 
 function confetti() {
@@ -540,10 +573,11 @@ function confetti() {
 document.addEventListener('click', (e) => {
   // A dialog button may already be gone (the dialog redraws itself) by the time the click gets here.
   if (dlg.contains(e.target) || !e.target.isConnected) return;
-  const t = e.target.closest('[data-act],[data-level],[data-k],[data-classic]');
+  const t = e.target.closest('[data-act],[data-level],[data-k],[data-classic],[data-day]');
   if (!t) return;
   const cfg = S().free;
   if (t.dataset.level) return startJourney(t.dataset.level);
+  if (t.dataset.day) return launch(dailyCtx(t.dataset.day, '#/records'));
   if (t.dataset.classic) {
     const [size, density] = t.dataset.classic.split(',');
     Object.assign(cfg, { grid: 'square', shape: 'rect', color: 'none', lines: false, owls: false, size, density });
@@ -555,6 +589,7 @@ document.addEventListener('click', (e) => {
     return freeScreen();
   }
   switch (t.dataset.act) {
+    case 'poke': return poke(t);
     case 'how': return showRules(Object.keys(RULES));
     case 'about': return aboutDialog();
     case 'settings': return settingsDialog();
