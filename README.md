@@ -65,6 +65,10 @@ network access. Build it with the Android SDK installed:
 The game files are copied in on every build. `android/app/build.gradle`
 carries the same version as `desktop/package.json`; a test checks they agree.
 
+### Development process
+
+Built on Linux in VS Code. I write very little code by hand and read the codebase selectively. Initial implementation leans on Claude Code (Opus or Fable), followed by OpenCode with various models via OpenRouter—often Gemini Neon as the main driver—for architecture reviews, bug hunting, detailed architecture and refactoring. For visual work, I use Nano Banana to iterate on art concepts and drafts. Everything else is done manually with the usual tools.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE). That covers the code and the artwork.
