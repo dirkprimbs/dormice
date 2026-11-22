@@ -14,3 +14,12 @@ test('the Android version matches the desktop version', () => {
   assert.equal(name, version);
   assert.equal(code, major * 10000 + minor * 100 + patch);
 });
+
+test('the Android Back handler uses a language-independent selector present on every sub-screen', () => {
+  const java = read('android/app/src/main/java/io/github/dirkprimbs/dormice/MainActivity.java');
+  const main = read('src/main.js');
+  assert.ok(java.includes('[data-back]'), 'BACK_JS must query [data-back]');
+  assert.ok(!java.includes('aria-label=\\"Back\\"'), 'BACK_JS must not hardcode English aria-label');
+  const backLinks = main.match(/class="iconbtn"[^>]*data-back/g) || [];
+  assert.equal(backLinks.length, 4, 'Journey, Free play, Records and Game screens each have a data-back link');
+});

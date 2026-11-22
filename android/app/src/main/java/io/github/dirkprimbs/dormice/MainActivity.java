@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
     private static final String BACK_JS = "(function(){"
             + "var d=document.querySelector('dialog[open]');"
             + "if(d){if(!d.dataset.sticky)d.close();return true;}"
-            + "var b=document.querySelector('.bar [aria-label=\"Back\"]');"
+            + "var b=document.querySelector('.bar [data-back]');"
             + "if(b){b.click();return true;}"
             + "return false;})()";
 

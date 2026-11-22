@@ -31,15 +31,29 @@ export class BoardView {
     this.onAct = onAct;
     this.onPoke = onPoke;
     this.scale = 0;
+    this.baseScale = 0;
+    this.W = this.H = 0;
     this.tx = this.ty = 0;
     this.hl = [];
     this.hinted = [];
     this.cursor = -1;
+    this.introMs = 0;
+    this.raf1 = this.raf2 = 0;
     this.build();
     if (intro) this.flyIn();
     this.bind();
     this.fit(true);
-    new ResizeObserver(() => this.fit(false)).observe(wrap);
+    this.ro = new ResizeObserver(() => this.fit(false));
+    this.ro.observe(wrap);
+  }
+
+  destroy() {
+    this.ro?.disconnect();
+    cancelAnimationFrame(this.raf1);
+    cancelAnimationFrame(this.raf2);
+    clearTimeout(this.introTimer);
+    clearTimeout(this.hlTimer);
+    clearTimeout(this.popTimer);
   }
 
   build() {
@@ -75,7 +89,7 @@ export class BoardView {
       el('polygon', { class: 'top', points: pts }, g);
       el('polygon', { class: 'edge', points: shrink(0.07) }, g); // outline for highlights
       const ct = el('g', { class: 'ct', transform: `translate(${(cell.x * U).toFixed(1)} ${(cell.y * U).toFixed(1)})` }, g);
-      return { g, ct, floor };
+      return { g, ct, floor, html: '' };
     });
     const labels = el('g', { class: 'labels' }, svg);
     this.labels = p.lines.map((line, i) => {
@@ -90,27 +104,42 @@ export class BoardView {
   }
 
   // A new board's tiles fly in from beyond its edges, the middle ones first.
+  // Explicit SVG transform-origin avoids per-frame fill-box BBox recalculation, and pausing
+  // until after the first paint keeps the opening frames from being dropped on slower phones.
   flyIn() {
     const b = this.game.p.board, cx = (b.minX + b.maxX) / 2, cy = (b.minY + b.maxY) / 2;
     const far = Math.hypot(b.maxX - cx, b.maxY - cy) || 1;
-    const span = Math.min(520, 160 + b.cells.length * 1.4); // big boards take a little longer, not forever
+    const span = Math.min(460, 140 + b.cells.length * 1.2); // big boards take a little longer, not forever
+    this.introMs = span + 500;
+    this.svg.classList.add('entering');
     b.cells.forEach((cell, i) => {
       const dx = cell.x - cx, dy = cell.y - cy, d = Math.hypot(dx, dy) / far;
-      const ang = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.9, dist = (1.6 + Math.random() * 1.6) * U;
+      const ang = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.9, dist = (1.1 + Math.random() * 1.1) * U;
       const { g, floor } = this.nodes[i];
-      const delay = Math.round(d * span + Math.random() * 90) + 'ms';
-      g.style.cssText = `--dx:${(Math.cos(ang) * dist).toFixed(0)}px;--dy:${(Math.sin(ang) * dist - U).toFixed(0)}px;--rot:${((Math.random() - 0.5) * 140).toFixed(0)}deg;animation-delay:${delay}`;
-      floor.style.animationDelay = delay;
+      const delay = Math.round(d * span + Math.random() * 70) + 'ms';
+      const ox = (cell.x * U).toFixed(1), oy = (cell.y * U).toFixed(1);
+      g.style.cssText = `--dx:${(Math.cos(ang) * dist).toFixed(0)}px;--dy:${(Math.sin(ang) * dist - U * 0.7).toFixed(0)}px;--rot:${((Math.random() - 0.5) * 110).toFixed(0)}deg;transform-origin:${ox}px ${oy}px;animation-delay:${delay}`;
       g.classList.add('enter');
-      floor.classList.add('enter');
+      if (floor.classList.contains('on')) {
+        floor.style.animationDelay = delay;
+        floor.classList.add('enter');
+      }
     });
     this.labels.forEach((l) => l.classList.add('enter'));
     clearTimeout(this.introTimer);
-    this.introTimer = setTimeout(() => {
-      // Tidy up, without touching a tile that has already been played (its class was rewritten).
-      this.nodes.forEach(({ g, floor }) => { g.classList.remove('enter'); floor.classList.remove('enter'); });
-      this.labels.forEach((l) => l.classList.remove('enter'));
-    }, span + 800);
+    this.raf1 = requestAnimationFrame(() => {
+      this.raf2 = requestAnimationFrame(() => {
+        this.svg.classList.remove('entering');
+        this.introTimer = setTimeout(() => {
+          // Tidy up, without touching a tile that has already been played (its class was rewritten).
+          this.nodes.forEach(({ g, floor }) => {
+            if (g.classList.contains('enter')) { g.classList.remove('enter'); g.style.cssText = ''; }
+            if (floor.classList.contains('enter')) { floor.classList.remove('enter'); floor.style.animationDelay = ''; }
+          });
+          this.labels.forEach((l) => l.classList.remove('enter'));
+        }, span + 650);
+      });
+    });
   }
 
   // A tapped dormouse wriggles.
@@ -156,16 +185,31 @@ export class BoardView {
     }
     if (c === this.cursor) cls += ' cursor';
     node.g.setAttribute('class', cls);
-    node.ct.innerHTML = html;
+    if (node.html !== html) { node.html = html; node.ct.innerHTML = html; }
   }
 
   update(changed) {
+    const animate = changed.length <= 24;
+    let maxDelay = 0;
     changed.forEach((c, i) => {
       this.refresh(c);
       const g = this.nodes[c].g;
-      g.style.animationDelay = Math.min(i * 9, 450) + 'ms';
-      g.classList.add('pop');
+      if (animate) {
+        const d = Math.min(i * 9, 220);
+        if (d > maxDelay) maxDelay = d;
+        g.style.animationDelay = d + 'ms';
+        g.classList.add('pop');
+      } else {
+        g.style.animationDelay = '';
+      }
     });
+    if (animate && changed.length) {
+      const popped = changed.slice();
+      clearTimeout(this.popTimer);
+      this.popTimer = setTimeout(() => {
+        for (const c of popped) this.nodes[c].g.classList.remove('pop');
+      }, maxDelay + 320);
+    }
     this.refreshLabels();
   }
 
@@ -221,7 +265,7 @@ export class BoardView {
 
   // ---- view: fit, zoom, pan ----
   fit(reset) {
-    const W = this.wrap.clientWidth, H = this.wrap.clientHeight;
+    const W = (this.W = this.wrap.clientWidth), H = (this.H = this.wrap.clientHeight);
     if (!W || !H) return;
     const perUnit = Math.min(W / this.vb.w, H / this.vb.h) * U; // px per tile when the whole board fits
     this.fitScale = Math.min(perUnit, 76);
@@ -247,26 +291,39 @@ export class BoardView {
     this.apply();
   }
 
-  apply() {
-    const W = this.wrap.clientWidth, H = this.wrap.clientHeight;
+  apply(live = false) {
+    const W = this.W || this.wrap.clientWidth, H = this.H || this.wrap.clientHeight;
     const w = (this.vb.w * this.scale) / U, h = (this.vb.h * this.scale) / U;
     this.tx = w <= W ? (W - w) / 2 : Math.min(0, Math.max(W - w, this.tx));
     this.ty = h <= H ? (H - h) / 2 : Math.min(0, Math.max(H - h, this.ty));
-    this.pannable = w > W + 1 || h > H + 1;
-    this.svg.style.width = w + 'px';
-    this.svg.style.height = h + 'px';
-    this.svg.style.transform = `translate(${this.tx}px, ${this.ty}px)`;
-    this.wrap.classList.toggle('pannable', this.pannable);
+    const pannable = w > W + 1 || h > H + 1;
+    if (pannable !== this.pannable) {
+      this.pannable = pannable;
+      this.wrap.classList.toggle('pannable', pannable);
+    }
+    if (live && this.baseScale) {
+      const ratio = this.scale / this.baseScale;
+      this.svg.style.transform = ratio === 1
+        ? `translate3d(${this.tx}px, ${this.ty}px, 0)`
+        : `translate3d(${this.tx}px, ${this.ty}px, 0) scale(${ratio})`;
+      return;
+    }
+    if (this.scale !== this.baseScale) {
+      this.baseScale = this.scale;
+      this.svg.style.width = w + 'px';
+      this.svg.style.height = h + 'px';
+    }
+    this.svg.style.transform = `translate3d(${this.tx}px, ${this.ty}px, 0)`;
   }
 
-  zoomAt(px, py, scale) {
+  zoomAt(px, py, scale, live = false) {
     scale = Math.max(Math.min(this.fitScale, 24), Math.min(96, scale));
     this.auto = false;
     const k = scale / this.scale;
     this.tx = px - (px - this.tx) * k;
     this.ty = py - (py - this.ty) * k;
     this.scale = scale;
-    this.apply();
+    this.apply(live);
   }
 
   // Scroll just enough to bring a tile into view.
@@ -274,7 +331,7 @@ export class BoardView {
     if (!this.pannable || c == null) return;
     const cell = this.game.p.board.cells[c], k = this.scale / U;
     const x = (cell.x * U - this.vb.x) * k + this.tx, y = (cell.y * U - this.vb.y) * k + this.ty;
-    const m = this.scale * 1.2, W = this.wrap.clientWidth, H = this.wrap.clientHeight;
+    const m = this.scale * 1.2, W = this.W || this.wrap.clientWidth, H = this.H || this.wrap.clientHeight;
     if (x < m) this.tx += m - x; else if (x > W - m) this.tx -= x - (W - m);
     if (y < m) this.ty += m - y; else if (y > H - m) this.ty -= y - (H - m);
     this.apply();
@@ -323,7 +380,7 @@ export class BoardView {
         const [d, mx, my] = spread();
         this.tx += mx - pinch.mx; this.ty += my - pinch.my;
         pinch.mx = mx; pinch.my = my;
-        this.zoomAt(mx, my, (pinch.scale * d) / pinch.d);
+        this.zoomAt(mx, my, (pinch.scale * d) / pinch.d, true);
       } else if (press && press.id === e.pointerId && !press.long) {
         if (!press.moved && Math.hypot(pos[0] - press.at[0], pos[1] - press.at[1]) > 9) {
           press.moved = true;
@@ -332,7 +389,7 @@ export class BoardView {
         }
         if (press.moved && this.pannable) {
           this.tx += pos[0] - press.last[0]; this.ty += pos[1] - press.last[1];
-          this.apply();
+          this.apply(true);
         }
         press.last = pos;
       }
@@ -346,7 +403,7 @@ export class BoardView {
         this.onAct(press.cell, press.button === 2 ? 'secondary' : press.button === 1 ? 'chord' : 'primary');
       }
       press = null;
-      if (ptrs.size < 2) pinch = null;
+      if (ptrs.size < 2 && pinch) { pinch = null; this.apply(false); }
     };
     wrap.addEventListener('pointerdown', this.onDown);
     wrap.addEventListener('pointermove', this.onMove);

@@ -55,7 +55,10 @@ export function generate(spec, seed, startCell = null) {
       if (k === maxPerturb || !perturb(p, mines, sim.known, safeZone, rng)) break;
     }
     // Too crowded to be solvable by logic: thin the sleepers out a little.
-    if (!solved && ++stuck >= patience && count > 0) count = Math.max(0, Math.min(count - 1, Math.floor(count * 0.95)));
+    if (!solved && ++stuck >= patience && count > 0) {
+      count = Math.max(0, Math.min(count - 1, Math.floor(count * 0.95)));
+      stuck = 0;
+    }
   }
 }
 

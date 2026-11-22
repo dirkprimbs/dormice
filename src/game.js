@@ -110,11 +110,10 @@ export class Game {
     return this._result([c]);
   }
 
-  // Acting on an open clue: if its leaves already add up, turn the rest;
-  // if the covered tiles are exactly what it still needs, leaf them all.
+  // Acting on an open clue: clears the rest once the player's own leaves make up the number;
+  // it never lays leaves for them.
   chord(c) {
     if (this.over || this.state[c] !== OPEN) return this._result([]);
-    // Only clears once the player's own leaves make up the number; it never lays leaves for them.
     const p = this.p, toOpen = [];
     p.parts[c].forEach((part, i) => {
       let marked = 0;

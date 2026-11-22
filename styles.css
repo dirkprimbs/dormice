@@ -162,7 +162,8 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 .boardwrap.pannable { cursor: grab; }
 .boardwrap.shake { animation: shake .35s; }
 @keyframes shake { 20% { transform: translateX(-5px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-3px); } }
-.board { position: absolute; left: 0; top: 0; display: block; overflow: visible; }
+.board { position: absolute; left: 0; top: 0; display: block; overflow: visible; transform-origin: 0 0; will-change: transform; }
+.board.entering .enter { animation-play-state: paused; }
 .board text { font-family: var(--font); font-weight: 800; text-anchor: middle; pointer-events: none; }
 
 .cell { --t: var(--tile); --d: var(--tile-d); cursor: pointer; }
@@ -175,8 +176,9 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 .cell:not(.open) .ct { translate: 0 -3px; }
 @media (hover: hover) { .cell:not(.open):hover { --t: color-mix(in srgb, var(--tile) 80%, #fff); } .cell.kc:not(.open):hover, .cell.twin:not(.open):hover { --t: color-mix(in srgb, var(--c, var(--c4)) 78%, #fff); } }
 .cell.open { cursor: default; }
-.cell.open .base { opacity: 0; }
+.cell.open .base { display: none; }
 .cell.open .top { transform: none; opacity: 0; }
+.cell.open:not(.pop) .top { display: none; }
 .floor { --f: var(--ground); fill: var(--f); stroke: color-mix(in srgb, var(--ink) 9%, var(--f)); stroke-width: 2.5; stroke-linejoin: round; pointer-events: none; visibility: hidden; }
 .floor.on { visibility: visible; }
 .floor.kc { --f: color-mix(in srgb, var(--c) 24%, var(--ground)); }
@@ -188,11 +190,11 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 [data-motion="on"] .cell.pop.open .top { animation: pop .28s both; animation-delay: inherit; }
 [data-motion="on"] .cell.pop .ct { animation: fadein .28s both; animation-delay: inherit; }
 @keyframes pop { from { opacity: 1; transform: translateY(-3px); } }
-/* A new board: its tiles fly in from beyond the edges (delays and directions are set per tile). */
-.cell.enter { transform-box: fill-box; transform-origin: center; animation: flyin .55s cubic-bezier(.2, .9, .3, 1.15) both; }
-.floor.enter, .lbl.enter { animation: fadein .5s ease-out both; }
-.lbl.enter { animation-delay: .35s; }
-@keyframes flyin { from { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.3); } 60% { opacity: 1; } }
+/* A new board: its tiles fly in from beyond the edges (delays, origins and directions are set per tile). */
+.cell.enter { animation: flyin .46s cubic-bezier(.2, .9, .3, 1.12) both; }
+.floor.enter, .lbl.enter { animation: fadein .42s ease-out both; }
+.lbl.enter { animation-delay: .3s; }
+@keyframes flyin { from { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.4); } 60% { opacity: 1; } }
 .cell .ct.poked .mouse { transform-box: fill-box; transform-origin: 50% 80%; animation: wriggle .7s ease-in-out; }
 @keyframes fadein { from { opacity: 0; } }
 
@@ -213,14 +215,14 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 .lbl text { font-size: 34px; fill: var(--ink); }
 .lbl { cursor: pointer; transition: opacity .2s; } .lbl.done { opacity: .35; }
 
-.cell .edge { fill: none; stroke: none; stroke-width: 7; stroke-linejoin: round; transform: translateY(-3px); pointer-events: none; }
+.cell .edge { fill: none; stroke: none; stroke-width: 0; stroke-linejoin: round; transform: translateY(-3px); pointer-events: none; }
 .cell.open .edge { transform: none; }
-.cell.hl:not(.open) .edge { stroke: var(--ink); stroke-opacity: .4; }
-.cell.hint-src .edge { stroke: var(--ink); }
-.cell.cursor .edge { stroke: var(--accent); stroke-dasharray: 14 8; }
-.cell.hint-safe .edge { stroke: var(--ok); stroke-width: 10; animation: pulse 1s ease-in-out infinite; }
-.cell.hint-mine .edge { stroke: var(--accent); stroke-width: 10; animation: pulse 1s ease-in-out infinite; }
-.cell.hint-wrong .edge { stroke: var(--heart); stroke-width: 10; animation: pulse 1s ease-in-out infinite; }
+.cell.hl:not(.open) .edge { stroke: var(--ink); stroke-width: 7; stroke-opacity: .4; }
+.cell.hint-src .edge { stroke: var(--ink); stroke-width: 7; }
+.cell.cursor .edge { stroke: var(--accent); stroke-width: 7; stroke-dasharray: 14 8; }
+.cell.hint-safe .edge { stroke: var(--ok); stroke-width: 10; animation: pulse 1s ease-in-out 3; }
+.cell.hint-mine .edge { stroke: var(--accent); stroke-width: 10; animation: pulse 1s ease-in-out 3; }
+.cell.hint-wrong .edge { stroke: var(--heart); stroke-width: 10; animation: pulse 1s ease-in-out 3; }
 .cell.hint-safe .top { fill: color-mix(in srgb, var(--t) 70%, #fff); }
 .lbl.hint-src circle { stroke: var(--ink); stroke-width: 7; }
 @keyframes pulse { 50% { stroke-opacity: .35; } }
@@ -250,7 +252,7 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 
 /* ---- dialogs ---- */
 dialog { border: 0; padding: 0; background: transparent; color: inherit; max-width: min(32rem, calc(100vw - 1.6rem)); max-height: calc(100dvh - 1.6rem); }
-dialog::backdrop { background: rgba(40, 30, 20, .42); backdrop-filter: blur(3px); }
+dialog::backdrop { background: rgba(40, 30, 20, .52); }
 dialog:focus-visible, .sheet:focus-visible { outline: none; }
 dialog[open] { animation: rise .22s ease-out; }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
@@ -272,9 +274,8 @@ dialog[open] { animation: rise .22s ease-out; }
 .result .row { justify-content: center; }
 
 .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
-.confetti i { position: absolute; top: -5vh; width: .8rem; height: 1.15rem; border-radius: 80% 10% 80% 10%; background: var(--c0); animation: fall linear both; }
-.confetti i { background: color-mix(in srgb, var(--tile) calc(var(--k) * 25%), var(--leafc)); }
-@keyframes fall { from { transform: translateY(0) rotate(var(--r)); } to { transform: translateY(112vh) rotate(calc(var(--r) + 540deg)); opacity: .9; } }
+.confetti i { position: absolute; top: -5vh; width: .8rem; height: 1.15rem; border-radius: 80% 10% 80% 10%; background: color-mix(in srgb, var(--tile) calc(var(--k) * 25%), var(--leafc)); animation: fall linear both; will-change: transform; }
+@keyframes fall { from { transform: translate3d(0, 0, 0) rotate(var(--r)); } to { transform: translate3d(0, 112vh, 0) rotate(calc(var(--r) + 540deg)); } }
 [data-motion="off"] *, [data-motion="off"] *::before { animation-duration: .01s !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .01s !important; } }
 .rec h2 + ol { margin-top: .6rem; }

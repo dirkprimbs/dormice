@@ -45,7 +45,8 @@ function applySettings() {
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySettings);
 
 // ---------- dialogs ----------
-function openDialog(html, onAct) {
+function openDialog(html, onAct, keepScroll = false) {
+  const prevScroll = keepScroll ? dlg.querySelector('.sheet')?.scrollTop || 0 : 0;
   dlg.innerHTML = html;
   dlg.onclick = (e) => {
     const b = e.target.closest('[data-act]');
@@ -55,9 +56,9 @@ function openDialog(html, onAct) {
   };
   delete dlg.dataset.sticky;
   if (!dlg.open) dlg.showModal();
-  // Focusing the button at the end scrolls a long sheet down; start at the top instead.
+  // Focusing the button at the end scrolls a long sheet down; start at the top unless updating in place.
   const sheet = dlg.querySelector('.sheet');
-  if (sheet) sheet.scrollTop = 0;
+  if (sheet) sheet.scrollTop = prevScroll;
 }
 
 function showRules(ids, then) {
@@ -74,7 +75,7 @@ function aboutDialog() {
     <div class="row"><button class="btn primary" autofocus data-act="ok">${t('close')}</button></div></div>`);
 }
 
-function settingsDialog() {
+function settingsDialog(keepScroll = false) {
   const s = S().settings;
   const cur = (key) => (key === 'snapLeaf' ? snapsBack() : s[key]);
   const seg = (key, opts) => `<div class="seg">${opts.map(([v, l]) => `<button data-act="set" data-k="${key}" data-v="${v}" class="${String(cur(key)) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
@@ -93,7 +94,7 @@ function settingsDialog() {
       const v = b.dataset.v;
       s[b.dataset.k] = v === 'true' ? true : v === 'false' ? false : v;
       const relang = b.dataset.k === 'lang';
-      store.save(); applySettings(); settingsDialog();
+      store.save(); applySettings(); settingsDialog(true);
       // The screen behind the dialog is in the old language: draw it again, without closing the dialog.
       if (relang) redraw();
       return true;
@@ -103,7 +104,7 @@ function settingsDialog() {
       b.dataset.sure = '1'; b.textContent = t('settings.eraseSure');
       return true;
     }
-  });
+  }, keepScroll);
 }
 
 // ---------- home ----------
@@ -162,7 +163,7 @@ function home() {
 function journeyScreen() {
   const pr = S().journey;
   app.innerHTML = `<main class="page">
-    <header class="bar"><a class="iconbtn" href="#/" aria-label="${t('back')}">${I.back}</a><h1>${t('journey.title')}</h1><span class="spacer"></span></header>
+    <header class="bar"><a class="iconbtn" href="#/" data-back aria-label="${t('back')}">${I.back}</a><h1>${t('journey.title')}</h1><span class="spacer"></span></header>
     <div class="chapters">${CHAPTERS.map((ch, ci) => {
       const open = isUnlocked(ch.levels[0], pr);
       return `<section class="chapter ${open ? '' : 'locked'}">
@@ -193,7 +194,7 @@ function freeScreen() {
   const isClassic = cfg.grid === 'square' && cfg.shape === 'rect' && cfg.color === 'none' && !cfg.lines && !cfg.owls;
   const best = S().best[cfgKey(cfg)];
   app.innerHTML = `<main class="page">
-    <header class="bar"><a class="iconbtn" href="#/" aria-label="${t('back')}">${I.back}</a><h1>${t('free.title')}</h1><span class="spacer"></span></header>
+    <header class="bar"><a class="iconbtn" href="#/" data-back aria-label="${t('back')}">${I.back}</a><h1>${t('free.title')}</h1><span class="spacer"></span></header>
     <div class="form">
       <fieldset><legend>${t('free.classics')}</legend><div class="chips">${CLASSIC.map(([l, s, d, sub]) =>
         `<button data-classic="${s},${d}" class="chip tall ${isClassic && cfg.size === s && cfg.density === d ? 'on' : ''}">${t(`classic.${l}`)}<small>${sub}</small></button>`).join('')}</div></fieldset>
@@ -256,7 +257,7 @@ function recordsScreen() {
     return `<li><b>${esc(chTitle(ch))}</b>${`<span class="stars"><i class="on">★</i> ${st}/${ch.levels.length * 3}</span>`}<span class="muted">${t('records.chapter', done.length, ch.levels.length, fmt(time))}</span></li>`;
   }).join('');
   app.innerHTML = `<main class="page">
-    <header class="bar"><a class="iconbtn" href="#/" aria-label="${t('back')}">${I.back}</a><h1>${t('records.title')}</h1><span class="spacer"></span></header>
+    <header class="bar"><a class="iconbtn" href="#/" data-back aria-label="${t('back')}">${I.back}</a><h1>${t('records.title')}</h1><span class="spacer"></span></header>
     <div class="chapters">
       <section class="chapter rec"><h2>${t('free.title')}</h2><p>${t('records.freeIntro')}</p></section>
       ${boards || `<section class="chapter rec"><p>${t('records.freeEmpty')}</p></section>`}
@@ -320,7 +321,7 @@ function gameScreen() {
     : colors === 'twins' ? `<div class="legend"><span class="lg tw"><i></i>${t('legend.twins')}</span></div>` : '';
   app.innerHTML = `<main class="game">
     <header class="bar">
-      <a class="iconbtn" href="${ctx.back}" aria-label="${t('back')}">${I.back}</a>
+      <a class="iconbtn" href="${ctx.back}" data-back aria-label="${t('back')}">${I.back}</a>
       <div class="title"><b>${esc(ctx.title())}</b><span>${esc(ctx.sub() || '')}</span></div>
       <div class="stat hearts" id="hearts"></div>
       <div class="stat" id="left" title="${t('game.left')}">${I.mouse}<b></b></div>
@@ -329,7 +330,7 @@ function gameScreen() {
     ${legend}
     <div class="stage">
       <div class="boardwrap" id="wrap" tabindex="0" aria-label="${t('game.board')}"></div>
-      <div class="hintbar" id="hintbar" hidden><p></p><button class="iconbtn small" data-act="hint-close" aria-label="${t('game.closeHint')}">×</button></div>
+      <div class="hintbar" id="hintbar" role="status" aria-live="polite" hidden><p></p><button class="iconbtn small" data-act="hint-close" aria-label="${t('game.closeHint')}">×</button></div>
     </div>
     <footer class="tools">
       <button class="tool" data-act="hint" aria-label="${t('game.hint')}">${I.hint}<span>${t('game.hint')}</span></button>
@@ -350,17 +351,32 @@ function gameScreen() {
   const p = preopen ? generate(spec, ctx.seed) : layoutPuzzle(spec, ctx.seed);
   const game = new Game(p, { lives: ctx.lives });
   if (preopen) game.openStart();
-  if (ses) clearInterval(ses.timer);
-  ses = { ctx, spec, game, mode: startMode(), guided: !!ctx.spec.guided, view: null, timer: 0, lives: null };
+  closeSession();
+  ses = { ctx, spec, game, mode: startMode(), guided: !!ctx.spec.guided, view: null, timer: 0, lives: null, guidedTimer: 0, toastTimer: 0 };
   ses.view = new BoardView($('#wrap'), game, { onAct: act, intro: motionOn(), onPoke: () => play('squeak') });
   ses.timer = setInterval(tick, 250);
   hud();
+  const scheduleGuided = () => {
+    if (!ses || !ses.guided) return;
+    const wait = ses.view.introMs || 0;
+    if (wait) ses.guidedTimer = setTimeout(() => ses && !ses.game.over && showHint(true), wait);
+    else showHint(true);
+  };
   const unseen = rulesOf(ctx.spec).filter((id) => !S().seen[id]);
   if (unseen.length) {
     unseen.forEach((id) => (S().seen[id] = true));
     store.save();
-    showRules(unseen, () => ses.guided && showHint(true));
-  } else if (ses.guided) showHint(true);
+    showRules(unseen, () => ses && ses.guided && showHint(true));
+  } else if (ses.guided) scheduleGuided();
+}
+
+function closeSession() {
+  if (!ses) return;
+  clearInterval(ses.timer);
+  clearTimeout(ses.toastTimer);
+  clearTimeout(ses.guidedTimer);
+  ses.view?.destroy();
+  ses = null;
 }
 
 // The space for the board, in tiles of the smallest size the view settles for before it
@@ -414,6 +430,7 @@ function act(c, kind, viaKey = false) {
     r = g.toggleLeaf(c);
   }
   if (!r.changed.length) return;
+  clearTimeout(ses.guidedTimer);
   ses.view.update(r.changed);
   hideHint();
   const opened = r.changed.filter((x) => g.state[x] === OPEN).length;
@@ -427,7 +444,7 @@ function act(c, kind, viaKey = false) {
   hud();
   if (r.won) return win();
   if (r.lost) return lose();
-  if (ses.guided) setTimeout(() => ses && !ses.game.over && showHint(true), 350);
+  if (ses.guided) ses.guidedTimer = setTimeout(() => ses && !ses.game.over && showHint(true), 350);
 }
 
 // The bar floats over the board, so the board never moves when it comes and goes.
@@ -496,7 +513,7 @@ function win() {
   } else if (ctx.kind === 'daily') {
     const old = S().daily[ctx.key];
     if (old && faster(time, old.time)) beaten = old.time;
-    if (!old || st > old.stars || (st === old.stars && time < old.time)) S().daily[ctx.key] = { time, stars: st };
+    S().daily[ctx.key] = { stars: Math.max(st, old?.stars || 0), time: Math.min(time, old?.time || Infinity) };
   } else {
     const k = cfgKey(ctx.cfg), old = S().best[k];
     const had = scoresFor(k).length, rank = addScore(k, time, st);
@@ -557,7 +574,7 @@ function poke(el) {
 }
 
 function confetti() {
-  if (!S().settings.motion) return;
+  if (!motionOn()) return;
   const box = document.createElement('div');
   box.className = 'confetti';
   for (let i = 0; i < 26; i++) {
@@ -648,7 +665,7 @@ function redraw() {
 function route() {
   if (dlg.open) dlg.close();
   const h = location.hash || '#/';
-  if (h !== '#/game' && ses) { clearInterval(ses.timer); ses = null; }
+  if (h !== '#/game' && ses) closeSession();
   if (h === '#/journey') journeyScreen();
   else if (h === '#/free') freeScreen();
   else if (h === '#/records') recordsScreen();

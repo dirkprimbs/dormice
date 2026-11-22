@@ -166,7 +166,7 @@ export default {
   'hint.mine.cell': 'The covered tiles around this clue are exactly enough to make up its number, so each of them hides a sleeper. Lay a leaf on them.',
   'hint.mine.line': 'This row clue needs every tile it has left. Each one hides a sleeper.',
   'hint.mine.color': 'This colour needs every tile it has left. Each one hides a sleeper.',
-  'hint.mine.total': 'There are exactly as many sleepers left as covered tiles. Each one hides a sleeper.',
+  'hint.mine.total': 'The remaining covered tiles are just enough to hold all the remaining sleepers. Each one hides a sleeper.',
   'hint.two': (mine) => `Read these two clues together. However their shared tiles turn out, the marked tiles ${mine ? 'hide sleepers' : 'are safe'}.`,
   'hint.deep': (mine) => `Only one outcome fits all the clues around here: the marked tiles ${mine ? 'hide sleepers' : 'are safe'}. Imagine the opposite and one of the clues stops adding up.`,
 

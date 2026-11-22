@@ -158,7 +158,7 @@ export default {
   'hint.mine.cell': 'Il reste autour de ce nombre exactement autant de cases couvertes qu’il en demande. Chacune cache donc un loir : pose une feuille dessus.',
   'hint.mine.line': 'Cet indice de ligne a besoin de toutes les cases qui lui restent. Chacune cache un loir.',
   'hint.mine.color': 'Cette couleur a besoin de toutes les cases qui lui restent. Chacune cache un loir.',
-  'hint.mine.total': 'Il reste exactement autant de loirs que de cases couvertes. Chacune cache un loir.',
+  'hint.mine.total': 'Les cases couvertes restantes suffisent tout juste pour tous les loirs restants. Chacune en cache.',
   'hint.two': (mine) => `Lis ces deux nombres ensemble. Quoi que cachent leurs cases communes, les cases marquées ${mine ? 'cachent des loirs' : 'sont sûres'}.`,
   'hint.deep': (mine) => `Une seule solution colle à tous les indices autour : les cases marquées ${mine ? 'cachent des loirs' : 'sont sûres'}. Suppose le contraire, et l’un des nombres ne tombe plus juste.`,
 

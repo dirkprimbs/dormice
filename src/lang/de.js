@@ -31,7 +31,7 @@ export default {
   'home.how': 'Spielregeln',
   'home.settings': 'Einstellungen',
   'home.about': 'Info',
-  'home.poke': 'Die Haselmaus anstupsen',
+  'home.poke': 'Den Siebenschläfer anstupsen',
 
   'about.by': 'Ein leises kleines Rätsel, bei dem du niemanden wecken darfst. Von Dirk Primbs.',
   'about.more': 'Wenn es dir gefällt: Hier siehst du, woran ich sonst noch baue.',
@@ -156,7 +156,7 @@ export default {
   'hint.mine.cell': 'Um diese Zahl sind nur noch genau so viele Felder verdeckt, wie sie verlangt. Unter jedem schläft also jemand: Leg Blätter darauf.',
   'hint.mine.line': 'Dieser Reihenhinweis braucht alle Felder, die ihm noch bleiben. Unter jedem schläft jemand.',
   'hint.mine.color': 'Diese Farbe braucht alle Felder, die ihr noch bleiben. Unter jedem schläft jemand.',
-  'hint.mine.total': 'Es sind genau so viele Siebenschläfer übrig wie verdeckte Felder. Unter jedem schläft jemand.',
+  'hint.mine.total': 'Die verbleibenden verdeckten Felder reichen genau für alle übrigen Siebenschläfer. Unter jedem schläft jemand.',
   'hint.two': (mine) => `Lies diese beiden Zahlen zusammen. Egal, was unter ihren gemeinsamen Feldern liegt: Die markierten Felder ${mine ? 'verstecken Siebenschläfer' : 'sind sicher'}.`,
   'hint.deep': (mine) => `Hier passt nur eine Lösung zu allen Hinweisen: Die markierten Felder ${mine ? 'verstecken Siebenschläfer' : 'sind sicher'}. Nimm das Gegenteil an, und eine der Zahlen geht nicht mehr auf.`,
 

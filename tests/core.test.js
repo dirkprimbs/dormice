@@ -51,7 +51,7 @@ test('every journey level is solvable at its stated depth, deterministically', (
 test('free play: every option combination generates and solves', () => {
   for (const grid of ['square', 'hex', 'tri'])
     for (const color of ['none', 'counts', 'split', 'twins'])
-      for (const shape of ['rect', 'round', 'ponds', 'hexagon'])
+      for (const shape of ['rect', 'round', 'diamond', 'ring', 'ponds', 'hexagon'])
         for (const extras of [0, 1]) {
           const cfg = { ...FREE_DEFAULT, grid, color, shape, size: 'm', density: 'tricky', lines: !!extras, owls: !!extras };
           const spec = freeSpec(cfg);
