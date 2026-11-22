@@ -23,3 +23,8 @@ test('the Android Back handler uses a language-independent selector present on e
   const backLinks = main.match(/class="iconbtn"[^>]*data-back/g) || [];
   assert.equal(backLinks.length, 4, 'Journey, Free play, Records and Game screens each have a data-back link');
 });
+
+test('open cells keep a hit-testable .top polygon for number chording and hover', () => {
+  const css = read('styles.css');
+  assert.ok(!/\.cell\.open[^}]*\.top[^}]*display\s*:\s*none/.test(css), '.cell.open .top must not be display: none');
+});

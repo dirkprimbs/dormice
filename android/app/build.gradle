@@ -12,8 +12,8 @@ android {
         targetSdk 36
         // Keep these two as plain values: F-Droid reads them from this file.
         // tests/versions.test.js checks they match desktop/package.json.
-        versionCode 10009
-        versionName '1.0.9'
+        versionCode 10010
+        versionName '1.0.10'
     }
 
     // Play uploads are signed with Dirk's upload key, which only CI has (as secrets, see

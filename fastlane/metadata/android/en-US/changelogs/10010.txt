@@ -1,0 +1,1 @@
+Smoother animations, panning and zooming on phones. Fixed the Android Back button in German and French, daily replay records, and several smaller bugs.

@@ -1,0 +1,1 @@
+Animations, déplacements et zoom plus fluides sur téléphone. Correction du bouton Retour Android en allemand et en français, des records en rejouant un jardin du jour, et de plusieurs petits bugs.

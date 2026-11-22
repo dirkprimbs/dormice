@@ -178,7 +178,7 @@ legend { padding: 0; font-weight: 800; font-size: .82rem; text-transform: upperc
 .cell.open { cursor: default; }
 .cell.open .base { display: none; }
 .cell.open .top { transform: none; opacity: 0; }
-.cell.open:not(.pop) .top { display: none; }
+.cell.open:not(.pop) .top { stroke: none; }
 .floor { --f: var(--ground); fill: var(--f); stroke: color-mix(in srgb, var(--ink) 9%, var(--f)); stroke-width: 2.5; stroke-linejoin: round; pointer-events: none; visibility: hidden; }
 .floor.on { visibility: visible; }
 .floor.kc { --f: color-mix(in srgb, var(--c) 24%, var(--ground)); }

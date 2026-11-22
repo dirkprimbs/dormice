@@ -1,0 +1,1 @@
+Flüssigere Animationen, Verschieben und Zoomen auf dem Handy. Außerdem wurden die Zurück-Taste auf Android auf Deutsch und Französisch, Bestzeiten beim erneuten Spielen von Gärten des Tages und mehrere kleinere Fehler behoben.
