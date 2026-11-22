@@ -178,6 +178,7 @@ public class MainActivity extends Activity {
             case "png": return "image/png";
             case "json": return "application/json";
             case "webmanifest": return "application/manifest+json";
+            case "ttf": return "font/ttf";
             default: return "application/octet-stream";
         }
     }

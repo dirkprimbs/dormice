@@ -3,7 +3,7 @@ import { store } from './store.js';
 import { generate } from './generator.js';
 import { layoutPuzzle } from './puzzle.js';
 import { Game, getHint, COVERED, OPEN, LEAF } from './game.js';
-import { BoardView, MOUSE_ICON, MOUSE_AWAKE, LEAF_ICON } from './boardview.js';
+import { BoardView, MOUSE_ICON, MOUSE_AWAKE, MOUSE_WIN, LEAF_ICON } from './boardview.js';
 import { CHAPTERS, LEVELS, isUnlocked, dailyPuzzle, dateKey, freeSpec, FREE_DEFAULT, FREE_OPTS, resolveFree, fitSpec, rulesOf } from './levels.js';
 import { RULES } from './text.js';
 import { play, setSound } from './audio.js';
@@ -19,15 +19,55 @@ const icon = (inner, vb = '-40 -40 80 80') => `<svg class="ic" viewBox="${vb}" a
 const I = {
   mouse: icon(MOUSE_ICON),
   awake: icon(MOUSE_AWAKE),
-  leaf: icon(LEAF_ICON),
-  heart: icon('<path class="heart" d="M0 28C-40 2-30-28-10-26C-3-25 0-18 0-18C0-18 3-25 10-26C30-28 40 2 0 28Z"/>'),
-  back: icon('<path d="M10-22L-14 0L10 22" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>'),
-  hint: icon('<path d="M0-30a21 21 0 0 0-11 39v7h22v-7a21 21 0 0 0-11-39zM-9 26h18" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'),
-  again: icon('<path d="M22-8A24 24 0 1 0 24 6M24-28v20H4" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>'),
-  fit: icon('<path d="M-26-10v-16h16M26-10v-16H10M-26 10v16h16M26 10v16H10" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>'),
-  turn: icon('<rect x="-24" y="-24" width="48" height="48" rx="10" fill="none" stroke="currentColor" stroke-width="8"/><circle r="6" fill="currentColor"/>'),
+  winMouse: icon(MOUSE_WIN),
+  leaf: icon(`<g transform="rotate(14)">${LEAF_ICON}</g>`),
+  heart: icon('<path class="heart out" d="M0 28C-38 2-30-27-11-26C-3-25 0-17 0-17C0-17 3-25 11-26C30-27 38 2 0 28Z"/><path class="heart-hi" d="M-16-14c-4 2-6 7-4 11"/>'),
+  heartEmpty: icon('<path class="heart-empty" d="M0 28C-38 2-30-27-11-26C-3-25 0-17 0-17C0-17 3-25 11-26C30-27 38 2 0 28Z"/>'),
+  heartSplit: icon(
+    '<path class="heart out heart-l" d="M0 28C-38 2-30-27-11-26C-3-25 0-17 0-17L-4-5L3 6L-3 17L0 28Z"/>' +
+    '<path class="heart out heart-r" d="M0 28L-3 17L3 6L-4-5L0-17C0-17 3-25 11-26C30-27 38 2 0 28Z"/>'
+  ),
+  back: icon('<path d="M10-22L-14 0L10 22" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>'),
+  // A little owl silhouette for Hint
+  hint: icon('<path d="M-18-24l6 8c4-2 8-2 12 0l6-8v14c6 6 8 15 6 24-3 10-10 15-18 15s-15-5-18-15c-2-9 0-18 6-24v-14z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><circle cx="-7" cy="-3" r="4" fill="currentColor"/><circle cx="7" cy="-3" r="4" fill="currentColor"/><path d="M-3 6l3 4 3-4" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>'),
+  again: icon('<path d="M22-8A24 24 0 1 0 24 6M24-28v20H4" fill="none" stroke="currentColor" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>'),
+  fit: icon('<path d="M-26-10v-16h16M26-10v-16H10M-26 10v16h16M26 10v16H10" fill="none" stroke="currentColor" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>'),
+  // A little garden trowel for Turn & Free play
+  turn: icon('<path d="M-22 22l14-14M-11 5l6 6M-6-10c9-12 22-18 28-12s0 19-12 28c-6 4-13 5-17 1s-3-11 1-17z" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>'),
+  path: icon('<path d="M-20 26c0-14 28-12 28-24s-24-10-24-22" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="1 11"/><circle cx="14" cy="-22" r="7" fill="none" stroke="currentColor" stroke-width="5.5"/><path d="M14-15v10" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/>'),
+  sun: icon('<circle r="13" fill="none" stroke="currentColor" stroke-width="6.5"/><path d="M0-30v7M0 23v7M-30 0h7M23 0h7M-21-21l5 5M16 16l5 5M21-21l-5 5M-16 16l-5 5" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>'),
   dice: icon('<rect x="-26" y="-26" width="52" height="52" rx="12" fill="none" stroke="currentColor" stroke-width="7"/><g fill="currentColor"><circle cx="-11" cy="-11" r="5.5"/><circle r="5.5"/><circle cx="11" cy="11" r="5.5"/></g>'),
 };
+const OAK_TL = '<path class="sp-leaf" d="M6-4C24-10 34 2 28 12C38 10 46 20 38 30C48 30 54 42 44 50C52 54 48 68 34 64C26 62 22 54 20 50C12 58 0 52 4 40C-6 36-4 22 8 20C-2 12 0 0 6-4Z"/><path class="sp-vein" d="M10 4L40 54M18 18L30 14M25 30L38 28M32 42L44 42M20 28L10 36M28 42L16 48"/>';
+const CLOVER = (cx, cy, s = 1) => `<g transform="translate(${cx} ${cy}) scale(${s})"><circle class="sp-clover" cx="-6" cy="-5" r="6"/><circle class="sp-clover" cx="6" cy="-5" r="6"/><circle class="sp-clover" cx="-6" cy="5" r="6"/><circle class="sp-clover" cx="6" cy="5" r="6"/></g>`;
+const SPRIGS_HOME = `<div class="sprigs" aria-hidden="true">
+  <svg class="sprig tl" viewBox="0 0 220 180">
+    <path class="sp-stem" d="M16 14C66 12 114 18 176 28M22 24C12 68 10 112 22 154M114 20C126 34 134 42 146 46"/>
+    ${OAK_TL}
+    ${CLOVER(88, 18, 0.95)}${CLOVER(184, 34, 1.05)}${CLOVER(14, 72, 0.85)}
+    <path class="sp-leaf sm" d="M14 114C2 122 2 138 14 144C22 134 22 122 14 114Z"/>
+    <path class="sp-leaf sm" d="M22 132C34 138 34 154 22 162C14 152 14 140 22 132Z"/>
+    <circle class="sp-berry" cx="122" cy="40" r="5.5"/><circle class="sp-berry" cx="134" cy="48" r="4.5"/><circle class="sp-berry" cx="148" cy="36" r="4.2"/>
+    <circle class="sp-berry" cx="30" cy="108" r="4.5"/><circle class="sp-berry" cx="38" cy="100" r="3.8"/>
+  </svg>
+  <svg class="sprig br" viewBox="0 0 220 180">
+    <g transform="translate(220 180) scale(-1 -1)">
+      <path class="sp-stem" d="M16 14C66 12 114 18 176 28M22 24C12 68 10 112 22 154M114 20C126 34 134 42 146 46"/>
+      ${OAK_TL}
+      ${CLOVER(88, 18, 0.95)}${CLOVER(184, 34, 1.05)}${CLOVER(14, 72, 0.85)}
+      <path class="sp-leaf sm" d="M14 114C2 122 2 138 14 144C22 134 22 122 14 114Z"/>
+      <path class="sp-leaf sm" d="M22 132C34 138 34 154 22 162C14 152 14 140 22 132Z"/>
+      <circle class="sp-berry" cx="122" cy="40" r="5.5"/><circle class="sp-berry" cx="134" cy="48" r="4.5"/><circle class="sp-berry" cx="148" cy="36" r="4.2"/>
+      <circle class="sp-berry" cx="30" cy="108" r="4.5"/><circle class="sp-berry" cx="38" cy="100" r="3.8"/>
+    </g>
+  </svg>
+</div>`;
+const SPRIGS_GAME = `<div class="sprigs pressed" aria-hidden="true">
+  <svg class="sprig tl" viewBox="0 0 200 180"><g transform="rotate(12 50 50) scale(1.25)">${OAK_TL}</g></svg>
+  <svg class="sprig tr" viewBox="0 0 200 180"><g transform="translate(170 20) rotate(110) scale(1.1)">${OAK_TL}</g></svg>
+  <svg class="sprig bl" viewBox="0 0 200 180"><g transform="translate(20 165) rotate(-55) scale(1.2)">${OAK_TL}</g></svg>
+  <svg class="sprig br" viewBox="0 0 200 180"><g transform="translate(175 160) rotate(205) scale(1.15)">${OAK_TL}</g></svg>
+</div>`;
 
 // ---------- settings ----------
 function applySettings() {
@@ -127,33 +167,55 @@ function dailyStreak() {
 function home() {
   const j = journeyStats(), today = S().daily[dateKey()], streak = dailyStreak();
   const dateText = new Date().toLocaleDateString(lang(), { weekday: 'long', day: 'numeric', month: 'long' });
-  app.innerHTML = `<main class="home">
+  app.innerHTML = `${SPRIGS_HOME}<main class="home">
     <header class="hero">
-      <button class="art" data-act="poke" aria-label="${t('home.poke')}"><svg viewBox="0 0 240 150" aria-hidden="true">
-        <path class="a-leaf" d="M20 118C60 60 170 50 226 96C170 150 70 150 20 118Z"/>
-        <path class="a-rib" d="M30 116C90 100 160 96 220 97"/>
+      <button class="art" data-act="poke" aria-label="${t('home.poke')}"><svg viewBox="0 0 240 156" aria-hidden="true">
+        <defs>
+          <linearGradient id="dm-leaf" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#d5d396"/><stop offset="55%" stop-color="#c2c482"/><stop offset="100%" stop-color="#aab16e"/>
+          </linearGradient>
+          <radialGradient id="dm-fur" cx="42%" cy="35%" r="68%">
+            <stop offset="0%" stop-color="#dfb891"/><stop offset="60%" stop-color="#c89a6e"/><stop offset="100%" stop-color="#ad7c52"/>
+          </radialGradient>
+          <linearGradient id="dm-nest" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f2cfba"/><stop offset="100%" stop-color="#e3b199"/>
+          </linearGradient>
+        </defs>
+        <path class="a-leaf" d="M22 118C62 66 154 60 218 99C174 147 82 150 22 118Z"/>
+        <path class="a-rib" d="M25 117C86 104 156 99 214 99"/>
+        <path class="a-vein" d="M68 109l-14-14M112 103l-12-15M158 100l-12-13M88 107l-12 17M136 102l-10 16M180 100l-9 12"/>
+        <path class="a-nest" d="M74 106C98 134 152 132 174 106C150 118 98 118 74 106Z"/>
         <g class="dm">
-          <ellipse class="a-fur" cx="122" cy="92" rx="52" ry="34"/>
-          <path class="a-tail" d="M168 104c22 6 30-14 16-22"/>
+          <g class="a-tail">
+            <path class="a-tail-fill" d="M164 106c18 2 28-8 24-21c-2-7-9-9-11-4c-1 3 3 6 5 10c1 6-6 10-18 9z"/>
+          </g>
           <g class="a-head">
-            <circle class="a-fur" cx="84" cy="84" r="27"/>
-            <g class="a-earl"><circle class="a-fur" cx="70" cy="60" r="11"/><circle class="a-ear" cx="70" cy="60" r="6"/></g>
-            <g class="a-earr"><circle class="a-fur" cx="98" cy="58" r="11"/><circle class="a-ear" cx="98" cy="58" r="6"/></g>
-            <path class="a-eye" d="M68 84q6 6 12 0M86 84q6 6 12 0"/><g class="a-open"><circle cx="74" cy="83" r="3.6"/><circle cx="92" cy="83" r="3.6"/></g>
-            <ellipse class="a-nose" cx="82" cy="95" rx="4" ry="3"/>
+            <g class="a-earl"><ellipse class="a-fur" cx="68" cy="60" rx="11.5" ry="12" transform="rotate(-14 68 60)"/><ellipse class="a-ear" cx="68.5" cy="61" rx="6.2" ry="6.8" transform="rotate(-14 68.5 61)"/></g>
+            <g class="a-earr"><ellipse class="a-fur" cx="98" cy="57" rx="11.5" ry="12" transform="rotate(10 98 57)"/><ellipse class="a-ear" cx="97.5" cy="58" rx="6.2" ry="6.8" transform="rotate(10 97.5 58)"/></g>
+          </g>
+          <path class="a-fur" d="M65 67C55 75 54 96 67 107C76 114 96 113 116 114C138 119 162 116 170 100C178 82 166 63 142 59C126 57 112 60 104 64C94 60 76 60 65 67Z"/>
+          <path class="a-tuft" d="M80 65l2 10M85 63l-1 11M90 65l-3 9M118 65q8-1 16 2M121 71q9-1 17 2M126 77q7 0 13 2"/>
+          <path class="a-haunch" d="M138 82C122 86 117 102 125 113"/>
+          <path class="a-fold" d="M90 109C98 107 104 103 108 99"/>
+          <g class="a-head">
+            <ellipse class="a-blush" cx="67" cy="94" rx="5.2" ry="2.8"/><ellipse class="a-blush" cx="99" cy="94" rx="5.2" ry="2.8"/>
+            <path class="a-eye" d="M68 87q5.5 6 11 0M86 87q5.5 6 11 0"/>
+            <g class="a-open"><circle cx="73.5" cy="86" r="4"/><circle cx="91.5" cy="86" r="4"/><circle class="a-shine" cx="72" cy="84.5" r="1.4"/><circle class="a-shine" cx="90" cy="84.5" r="1.4"/></g>
+            <ellipse class="a-nose" cx="82" cy="96" rx="3.8" ry="2.7"/>
+            <path class="a-whisker" d="M65 92l-13-3M65 96l-14 0M66 100l-12 4M99 92l13-3M99 96l14 0M98 100l12 4"/>
           </g>
         </g>
-        <text class="a-z z1" x="128" y="46">z</text><text class="a-z z2" x="146" y="30">z</text><text class="a-z z3" x="166" y="16">z</text>
+        <text class="a-z z1" x="132" y="46">z</text><text class="a-z z2" x="150" y="30">z</text><text class="a-z z3" x="170" y="16">z</text>
       </svg></button>
       <h1>Dormice</h1>
       <p>${t('tagline')}</p>
     </header>
     <nav class="menu">
-      <a class="card primary" href="#/journey"><b>${j.done ? t('home.continue') : t('home.start')}</b>
-        <span>${j.next ? esc(t('home.next', chTitle(CHAPTERS[j.next.chapter]), j.next.index + 1)) : t('home.allVisited')} · ${j.done}/${LEVELS.length} · ${j.st}★</span></a>
-      <a class="card" href="#/daily"><b>${t('home.today')}</b>
-        <span>${dateText} · ${today ? t('home.todayDone', fmt(today.time), '★'.repeat(today.stars)) : t('home.notVisited')}${streak > 1 ? ` · ${t('home.streak', streak)}` : ''}</span></a>
-      <a class="card" href="#/free"><b>${t('home.free')}</b><span>${t('home.freeBlurb')}</span></a>
+      <a class="card primary" href="#/journey"><span class="card-ic">${I.path}</span><span class="card-txt"><b>${j.done ? t('home.continue') : t('home.start')}</b>
+        <span>${j.next ? esc(t('home.next', chTitle(CHAPTERS[j.next.chapter]), j.next.index + 1)) : t('home.allVisited')} · ${j.done}/${LEVELS.length} · ${j.st}★</span></span></a>
+      <a class="card today" href="#/daily"><span class="card-ic">${I.sun}</span><span class="card-txt"><b>${t('home.today')}</b>
+        <span>${dateText} · ${today ? t('home.todayDone', fmt(today.time), '★'.repeat(today.stars)) : t('home.notVisited')}${streak > 1 ? ` · ${t('home.streak', streak)}` : ''}</span></span></a>
+      <a class="card free" href="#/free"><span class="card-ic">${I.turn}</span><span class="card-txt"><b>${t('home.free')}</b><span>${t('home.freeBlurb')}</span></span></a>
     </nav>
     <footer><a class="link" href="#/records">${t('home.records')}</a><button class="link" data-act="how">${t('home.how')}</button><button class="link" data-act="settings">${t('home.settings')}</button><button class="link" data-act="about">${t('home.about')}</button></footer>
   </main>`;
@@ -162,7 +224,7 @@ function home() {
 // ---------- journey ----------
 function journeyScreen() {
   const pr = S().journey;
-  app.innerHTML = `<main class="page">
+  app.innerHTML = `${SPRIGS_HOME}<main class="page">
     <header class="bar"><a class="iconbtn" href="#/" data-back aria-label="${t('back')}">${I.back}</a><h1>${t('journey.title')}</h1><span class="spacer"></span></header>
     <div class="chapters">${CHAPTERS.map((ch, ci) => {
       const open = isUnlocked(ch.levels[0], pr);
@@ -193,7 +255,7 @@ function freeScreen() {
   const tog = (k, l, off) => `<button data-k="${k}" data-v="toggle" class="chip ${cfg[k] ? 'on' : ''}" ${off ? 'disabled' : ''}>${l}</button>`;
   const isClassic = cfg.grid === 'square' && cfg.shape === 'rect' && cfg.color === 'none' && !cfg.lines && !cfg.owls;
   const best = S().best[cfgKey(cfg)];
-  app.innerHTML = `<main class="page">
+  app.innerHTML = `${SPRIGS_HOME}<main class="page">
     <header class="bar"><a class="iconbtn" href="#/" data-back aria-label="${t('back')}">${I.back}</a><h1>${t('free.title')}</h1><span class="spacer"></span></header>
     <div class="form">
       <fieldset><legend>${t('free.classics')}</legend><div class="chips">${CLASSIC.map(([l, s, d, sub]) =>
@@ -256,7 +318,7 @@ function recordsScreen() {
     const st = done.reduce((a, l) => a + d.journey[l.id].stars, 0), time = done.reduce((a, l) => a + d.journey[l.id].best, 0);
     return `<li><b>${esc(chTitle(ch))}</b>${`<span class="stars"><i class="on">★</i> ${st}/${ch.levels.length * 3}</span>`}<span class="muted">${t('records.chapter', done.length, ch.levels.length, fmt(time))}</span></li>`;
   }).join('');
-  app.innerHTML = `<main class="page">
+  app.innerHTML = `${SPRIGS_HOME}<main class="page">
     <header class="bar"><a class="iconbtn" href="#/" data-back aria-label="${t('back')}">${I.back}</a><h1>${t('records.title')}</h1><span class="spacer"></span></header>
     <div class="chapters">
       <section class="chapter rec"><h2>${t('free.title')}</h2><p>${t('records.freeIntro')}</p></section>
@@ -329,6 +391,7 @@ function gameScreen() {
     </header>
     ${legend}
     <div class="stage">
+      ${SPRIGS_GAME}
       <div class="boardwrap" id="wrap" tabindex="0" aria-label="${t('game.board')}"></div>
       <div class="hintbar" id="hintbar" role="status" aria-live="polite" hidden><p></p><button class="iconbtn small" data-act="hint-close" aria-label="${t('game.closeHint')}">×</button></div>
     </div>
@@ -394,12 +457,15 @@ function tick() {
 
 function hud() {
   const g = ses.game;
-  // Hearts are drawn again only when one is lost, so a lost heart's burst can play out.
+  // Hearts are drawn again only when one is lost, so a lost heart's crack & split can play out.
   if (ses.lives !== g.lives) {
     const lost = (i) => ses.lives != null && i >= g.lives && i < ses.lives;
-    const bits = Array.from({ length: 8 }, (_, k) => `<i class="bit" style="--a:${k * 45 + 22}deg"></i>`).join('');
-    $('#hearts').innerHTML = g.maxLives > 1 ? Array.from({ length: g.maxLives }, (_, i) =>
-      `<span class="${i < g.lives ? '' : 'gone'}${lost(i) && motionOn() ? ' burst' : ''}">${I.heart}${lost(i) && motionOn() ? bits : ''}</span>`).join('') : '';
+    const bits = Array.from({ length: 6 }, (_, k) => `<i class="bit" style="--a:${k * 60 + 18}deg"></i>`).join('');
+    $('#hearts').innerHTML = g.maxLives > 1 ? Array.from({ length: g.maxLives }, (_, i) => {
+      if (i < g.lives) return `<span>${I.heart}</span>`;
+      if (lost(i) && motionOn()) return `<span class="gone burst">${I.heartEmpty}<span class="split">${I.heartSplit}</span>${bits}</span>`;
+      return `<span class="gone">${I.heartEmpty}</span>`;
+    }).join('') : '';
     ses.lives = g.lives;
   }
   $('#left b').textContent = g.remaining();
@@ -529,7 +595,7 @@ function win() {
   const why = st === 3 ? t('win.three') : st === 2 ? t('win.two') : t('win.one');
   setTimeout(() => {
     if (!ses || ses.game !== game) return;
-    openDialog(`<div class="sheet result"><button class="big" data-act="poke" aria-label="${t('home.poke')}">${I.mouse}</button><h2>${t('win.title')}</h2>${stars(st)}
+    openDialog(`<div class="sheet result"><button class="big" data-act="poke" aria-label="${t('home.poke')}">${I.winMouse}</button><h2>${t('win.title')}</h2>${stars(st)}
       ${beaten != null ? `<p class="record"><b>${t('win.record')}</b><span>${t('win.beats', fmt(time), fmt(beaten))}</span></p>` : ''}
       <p>${fmt(time)} · ${why}</p>${note ? `<p class="muted">${note}</p>` : ''}
       ${nextOpen && next.index === 0 ? `<p class="muted">${esc(t('win.nextUp', chTitle(CHAPTERS[next.chapter])))}</p>` : ''}

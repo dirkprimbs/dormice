@@ -1,0 +1,1 @@
+A fresh storybook look: hand-illustrated dormice (including startled sleepers and a cozy win screen), lobed autumn oak leaves, wooden garden-bed frame, woven linen menus, splitting hearts, and smoother animations on phones. Also fixed the Android Back button in German and French and daily replay records.

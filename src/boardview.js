@@ -12,12 +12,63 @@ const el = (tag, attrs = {}, parent) => {
 };
 
 export const MOUSE_ICON =
-  '<g class="mouse"><circle class="fur" cx="-17" cy="-19" r="10"/><circle class="fur" cx="17" cy="-19" r="10"/>' +
-  '<circle class="ear" cx="-17" cy="-19" r="5"/><circle class="ear" cx="17" cy="-19" r="5"/>' +
-  '<circle class="fur" r="25" cy="2"/><path class="eye" d="M-14 0q5 5 10 0M4 0q5 5 10 0"/><ellipse class="nose" cy="10" rx="3.5" ry="2.6"/></g>';
-export const MOUSE_AWAKE = MOUSE_ICON.replace(/<path class="eye"[^>]*\/>/, '<circle class="pupil" cx="-9" cy="0" r="3.6"/><circle class="pupil" cx="9" cy="0" r="3.6"/>');
+  '<g class="mouse">' +
+  '<path class="tail" d="M20 18c9 3 14-5 9-11"/>' +
+  '<circle class="fur out" cx="-17" cy="-18" r="10"/><circle class="fur out" cx="17" cy="-18" r="10"/>' +
+  '<circle class="ear" cx="-17" cy="-18" r="5.5"/><circle class="ear" cx="17" cy="-18" r="5.5"/>' +
+  '<ellipse class="fur out" cx="0" cy="3" rx="25" ry="23"/>' +
+  '<ellipse class="belly" cx="0" cy="11" rx="14" ry="10"/>' +
+  '<ellipse class="blush" cx="-15" cy="7" rx="4.5" ry="2.6"/><ellipse class="blush" cx="15" cy="7" rx="4.5" ry="2.6"/>' +
+  '<path class="eye" d="M-14 0q4.5 5 9 0M5 0q4.5 5 9 0"/>' +
+  '<ellipse class="nose" cx="0" cy="7" rx="3.4" ry="2.4"/>' +
+  '<path class="whisker" d="M-16 6l-10-2M-16 10l-10 2M16 6l10-2M16 10l10 2"/>' +
+  '</g>';
+
+export const MOUSE_AWAKE =
+  '<g class="mouse startled">' +
+  '<g class="sparks">' +
+  '<path class="spark" d="M-29-16l-6-8M-31-4l-7-1M29-16l6-8M31-4l7-1"/>' +
+  '<circle class="sparkdot" cx="-36" cy="-27" r="2.2"/><circle class="sparkdot" cx="36" cy="-27" r="2.2"/>' +
+  '</g>' +
+  '<circle class="fur out" cx="-20" cy="-20" r="10.5"/><circle class="fur out" cx="20" cy="-20" r="10.5"/>' +
+  '<circle class="ear" cx="-20" cy="-20" r="5.8"/><circle class="ear" cx="20" cy="-20" r="5.8"/>' +
+  '<ellipse class="fur out" cx="0" cy="4" rx="24" ry="22"/>' +
+  '<ellipse class="belly" cx="0" cy="12" rx="13" ry="10"/>' +
+  '<ellipse class="blush" cx="-15" cy="8" rx="4.2" ry="2.4"/><ellipse class="blush" cx="15" cy="8" rx="4.2" ry="2.4"/>' +
+  '<circle class="pupil" cx="-9.5" cy="0" r="5.2"/><circle class="pupil" cx="9.5" cy="0" r="5.2"/>' +
+  '<circle class="shine" cx="-11" cy="-1.8" r="1.8"/><circle class="shine" cx="8" cy="-1.8" r="1.8"/>' +
+  '<path class="brow" d="M-16-8.5L-5-12M16-8.5L5-12"/>' +
+  '<ellipse class="nose" cx="0" cy="7.5" rx="3.2" ry="2.2"/>' +
+  '<path class="sadmouth" d="M-5 15.5Q0 11.2 5 15.5"/>' +
+  '<path class="whisker" d="M-16 6l-9-2M-16 10l-9 2M16 6l9-2M16 10l9 2"/>' +
+  '<ellipse class="paw out" cx="-22" cy="13" rx="5.5" ry="4.2" transform="rotate(-24 -22 13)"/>' +
+  '<ellipse class="paw out" cx="22" cy="13" rx="5.5" ry="4.2" transform="rotate(24 22 13)"/>' +
+  '</g>';
+
+export const MOUSE_WIN =
+  '<g class="mouse happy">' +
+  '<circle class="fur out" cx="-16" cy="-20" r="9.5"/><circle class="fur out" cx="16" cy="-20" r="9.5"/>' +
+  '<circle class="ear" cx="-16" cy="-20" r="5.2"/><circle class="ear" cx="16" cy="-20" r="5.2"/>' +
+  '<ellipse class="fur out" cx="0" cy="-2" rx="22" ry="20"/>' +
+  '<ellipse class="belly" cx="0" cy="5" rx="13" ry="8"/>' +
+  '<ellipse class="blush" cx="-13" cy="2" rx="4.2" ry="2.4"/><ellipse class="blush" cx="13" cy="2" rx="4.2" ry="2.4"/>' +
+  '<path class="eye" d="M-13-4q4-5.5 8 0M5-4q4-5.5 8 0"/>' +
+  '<ellipse class="nose" cx="0" cy="2" rx="3" ry="2"/>' +
+  '<path class="smile" d="M-4 6.5q4 3.5 8 0"/>' +
+  '<path class="blanket out" d="M-31 18C-24 4 24 4 31 18C18 30-18 30-31 18Z"/>' +
+  '<path class="blanket-rib" d="M-24 18C-8 13 10 13 26 18"/>' +
+  '<ellipse class="paw out" cx="-12" cy="9" rx="5" ry="3.5"/><ellipse class="paw out" cx="12" cy="9" rx="5" ry="3.5"/>' +
+  '</g>';
+
 export const LEAF_ICON =
-  '<g class="leafmark" transform="rotate(32)"><path class="blade" d="M0-31C24-20 27 9 0 31C-27 9-24-20 0-31Z"/><path class="rib" d="M0-20V31"/></g>';
+  '<g class="leafmark">' +
+  '<path class="blade out" d="M0-32C6-32 9-25 7-20C14-23 22-17 18-10C16-7 13-6 12-5C21-5 24 4 17 10C14 12 10 12 9 13C15 17 13 24 5 24C2 24 1 22 0 21C-1 22-2 24-5 24C-13 24-15 17-9 13C-10 12-14 12-17 10C-24 4-21-5-12-5C-13-6-16-7-18-10C-22-17-14-23-7-20C-9-25-6-32 0-32Z"/>' +
+  '<path class="rib" d="M0-25V31"/>' +
+  '<path class="vein" d="M0-14l10-5M0-14l-10-5M0-2l12-4M0-2l-12-4M0 10l9-3M0 10l-9-3"/>' +
+  '</g>';
+
+const LEAF_PUFFS =
+  '<g class="puffs"><circle cx="-24" cy="14" r="3"/><circle cx="24" cy="12" r="2.6"/><circle cx="-18" cy="-18" r="2.4"/><circle cx="20" cy="-16" r="2.8"/></g>';
 const TWIN_DOTS = '<g class="twindots"><circle cx="-7" cy="-27" r="4.2"/><circle cx="7" cy="-27" r="4.2"/></g>';
 const MARKS = [
   '<circle r="5"/>', '<path d="M0-6L6 0L0 6L-6 0Z"/>', '<path d="M0-6L6 5H-6Z"/>',
@@ -66,6 +117,27 @@ export class BoardView {
     const pad = 0.3;
     this.vb = { x: (x0 - pad) * U, y: (y0 - pad) * U, w: (x1 - x0 + 2 * pad) * U, h: (y1 - y0 + 2 * pad) * U };
     const svg = (this.svg = el('svg', { class: 'board grid-' + b.grid, viewBox: `${this.vb.x} ${this.vb.y} ${this.vb.w} ${this.vb.h}` }));
+    // Rustic wooden garden-bed timber frame around the plot (stays inside the existing 0.3U margin).
+    const frame = el('g', { class: 'garden-frame' }, svg);
+    const fx0 = b.minX * U, fy0 = b.minY * U, fx1 = b.maxX * U, fy1 = b.maxY * U;
+    const fw = fx1 - fx0, fh = fy1 - fy0, bt = 20, g = 4, ov = 6;
+    if (b.grid === 'square' && (!p.spec.shape || p.spec.shape === 'rect'))
+      el('rect', { class: 'bed-soil', x: fx0 - g, y: fy0 - g, width: fw + 2 * g, height: fh + 2 * g, rx: 6 }, frame);
+    const beam = (x, y, w, h, horiz) => {
+      el('rect', { class: 'wood', x, y, width: w, height: h, rx: 4 }, frame);
+      if (horiz) {
+        el('path', { class: 'wood-grain', d: `M${x + 12} ${y + h * 0.35}H${x + w - 12}M${x + 26} ${y + h * 0.7}H${x + w - 20}` }, frame);
+      } else {
+        el('path', { class: 'wood-grain', d: `M${x + w * 0.35} ${y + 12}V${y + h - 12}M${x + w * 0.7} ${y + 26}V${y + h - 20}` }, frame);
+      }
+    };
+    // Left & right posts, then top & bottom beams overlapping at the corners.
+    beam(fx0 - g - bt, fy0 - g - bt - ov, bt, fh + 2 * (g + bt + ov), false);
+    beam(fx1 + g, fy0 - g - bt - ov, bt, fh + 2 * (g + bt + ov), false);
+    beam(fx0 - g - bt - ov, fy0 - g - bt, fw + 2 * (g + bt + ov), bt, true);
+    beam(fx0 - g - bt - ov, fy1 + g, fw + 2 * (g + bt + ov), bt, true);
+    for (const [px, py] of [[fx0 - g - bt / 2, fy0 - g - bt / 2], [fx1 + g + bt / 2, fy0 - g - bt / 2], [fx0 - g - bt / 2, fy1 + g + bt / 2], [fx1 + g + bt / 2, fy1 + g + bt / 2]])
+      el('circle', { class: 'wood-peg', cx: px, cy: py, r: 3.6 }, frame);
     // Opened ground is drawn full-size in its own layer, so it joins into one surface under the raised tiles.
     const floors = el('g', { class: 'floors' }, svg);
     const layer = el('g', { class: 'cells' }, svg);
@@ -167,7 +239,7 @@ export class BoardView {
 
   refresh(c) {
     const g = this.game, p = g.p, st = g.state[c], node = this.nodes[c];
-    let cls = 'cell', html = '';
+    let cls = 'cell v' + ((c * 29) % 3), html = '';
     if (p.color[c] >= 0) cls += ' kc k' + p.color[c];
     const twin = p.w[c] === 2;
     if (twin) cls += ' twin';
@@ -175,11 +247,13 @@ export class BoardView {
     if (st === OPEN) { cls += ' open'; html = this.clueMarkup(c); }
     else if (st === LEAF) {
       cls += ' leaf';
-      html = LEAF_ICON;
+      const tilt = ((c * 37) % 25) - 12;
+      html = LEAF_PUFFS + `<g transform="rotate(${tilt})">${LEAF_ICON}</g>`;
       if (g.status === 'lost' && !p.mines[c]) { cls += ' wrong'; html += '<path class="cross" d="M-20-20L20 20M20-20L-20 20"/>'; }
     } else if (st === WOKEN) { cls += ' woken'; html = MOUSE_AWAKE; }
     else if (g.status === 'lost' && p.mines && p.mines[c]) { cls += ' shown'; html = MOUSE_ICON; }
-    if (st !== OPEN) {
+    // When a tile is covered with a leaf, the leaf is the only visible element on it.
+    if (st !== OPEN && st !== LEAF) {
       if (twin) html += TWIN_DOTS;
       if (p.color[c] >= 0) html += `<g class="mark" transform="translate(0 30) scale(.8)">${MARKS[p.color[c]]}</g>`;
     }

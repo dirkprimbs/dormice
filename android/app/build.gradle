@@ -12,8 +12,8 @@ android {
         targetSdk 36
         // Keep these two as plain values: F-Droid reads them from this file.
         // tests/versions.test.js checks they match desktop/package.json.
-        versionCode 10010
-        versionName '1.0.10'
+        versionCode 10011
+        versionName '1.0.11'
     }
 
     // Play uploads are signed with Dirk's upload key, which only CI has (as secrets, see
@@ -57,7 +57,7 @@ android {
 // into the app's assets on every build, so there is only one copy to maintain.
 def webAssets = tasks.register('webAssets', Sync) {
     from(rootProject.file('..')) {
-        include 'index.html', 'styles.css', 'manifest.webmanifest', 'src/**', 'icons/**'
+        include 'index.html', 'styles.css', 'manifest.webmanifest', 'src/**', 'icons/**', 'fonts/**'
     }
     into layout.buildDirectory.dir('webAssets/www')
 }
